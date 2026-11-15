@@ -173,7 +173,7 @@ public partial class LauncherForm
 
     private void PushSaves(string? note = null, bool ok = true)
     {
-        string root = SavesRoot();
+        string root = ProfileSavesRoot();
         List<SaveEntry> saves;
         try { saves = ListSaves(root); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { saves = new(); note ??= "Could not read the saves folder"; ok = false; }
@@ -183,9 +183,9 @@ public partial class LauncherForm
     private void RestoreSaveFromPage(string? id)
     {
         if (string.IsNullOrEmpty(id)) return;
-        if (gameRunning || AnyGameRunning()) { PushSaves("Close the game first, then restore the save", false); return; }
+        if (launchingGame || gameRunning || AnyGameRunning()) { PushSaves("Close the game first, then restore the save", false); return; }
         string? error;
-        try { error = RestoreSave(SavesRoot(), id, DateTime.Now); }
+        try { error = RestoreSave(ProfileSavesRoot(), id, DateTime.Now); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { error = "Could not restore: " + ex.Message; }
         PushSaves(error ?? "Save restored. Your previous save and a full backup were kept.", error == null);
     }

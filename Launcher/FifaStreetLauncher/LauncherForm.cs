@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -83,8 +83,9 @@ public partial class LauncherForm : Form, ISceneHost, IUiScaled
     private static readonly string[] ReadbackResolveModes = { "full", "some", "fast", "none" };
     // Xbox language ids; PtBrLanguageId is ReStreet's Brazilian Portuguese: English to the game (the translation takes
     // the English slot) plus FIFASTREET_GAME_LANGUAGE=pt-BR, which loads locale_ptbr.big and shows cm/kg.
+    private const int PtPtLanguageId = 1002;
     private const int PtBrLanguageId = 1001;
-    private static readonly int[] GameLanguageIds = { 1, 5, 4, 3, 6, PtBrLanguageId };
+    private static readonly int[] GameLanguageIds = { 1, 5, 4, 3, 6, PtBrLanguageId, PtPtLanguageId };
 
     private readonly GlassToggle vsyncBox = new();
     private readonly GlassToggle vrrBox = new();
@@ -693,7 +694,7 @@ displayModeBox.SelectedIndexChanged += (_, _) => { UpdateRefreshRates(); UpdateS
             "Vulkan"
         });
         graphicsApiBox.SelectedIndex = 0;
-        gameLanguageBox.Items.AddRange(new object[] { "English", "Español", "Français", "Deutsch", "Italiano", "Português (Brasil)" });
+        gameLanguageBox.Items.AddRange(new object[] { "English", "Español", "Français", "Deutsch", "Italiano", "Português (Brasil)", "Português (Portugal)" });
         gameLanguageBox.SelectedIndex = 0;
 
         readbackResolveBox.Items.AddRange(new object[]
@@ -1140,14 +1141,25 @@ displayModeBox.SelectedIndexChanged += (_, _) => { UpdateRefreshRates(); UpdateS
 
     private async void LaunchGame()
     {
-        if (gameRunning || OtherGameFromHere() is not null) {
+        if (launchingGame || gameRunning || OtherGameFromHere() is not null) {
             ShowError("ReStreet is already running.");
             return;
         }
+        string? temporaryLocale = null;
         try
         {
             string exe = exePathBox.Text.Trim();
-            string gameRoot = gamePathBox.Text.Trim();
+            launchingGame = true;
+            bool modded = UseMod;
+            string vanillaRoot = gamePathBox.Text.Trim();
+            string gameRoot = modded ? ModGamePath : vanillaRoot;
+            if (modded && (gameRoot.Length == 0 || vanillaRoot.Length == 0 ||
+                !File.Exists(Path.Combine(vanillaRoot, "default.xex")) ||
+                SameGameFolder(gameRoot, vanillaRoot) || IsOtherModFolder(gameRoot)))
+            {
+                ShowError("Configure the original Game folder and a separate Game folder for the selected mod.");
+                return;
+            }
 
             if (!File.Exists(exe))
             {
@@ -1264,6 +1276,12 @@ displayModeBox.SelectedIndexChanged += (_, _) => { UpdateRefreshRates(); UpdateS
             // The REX_* variables set here therefore win over the TOML file.
 
             startInfo.Environment["REX_GAME_DATA_ROOT"] = gameRoot;
+            if (modded)
+            {
+                string saveRoot = ProfileSavesRoot();
+                Directory.CreateDirectory(saveRoot);
+                startInfo.ArgumentList.Add($"--user_data_root={saveRoot}");
+            }
             int internalResolutionScale = Math.Max(1, internalResolutionBox.SelectedIndex + 1);
             string readbackResolve = ReadbackResolveModes[Math.Clamp(readbackResolveBox.SelectedIndex, 0, ReadbackResolveModes.Length - 1)];
             bool deck = IsDeckBase(executableDirectory);
@@ -1394,7 +1412,7 @@ startInfo.Environment["REX_DRAW_RESOLUTION_SCALE_Y"] =
 
             // Online play: the server and the player name come from the online patch.
             var online = LoadOnlineConfig();
-            if (online != null && onlineModeBox.Checked)
+            if (!modded && online != null && onlineModeBox.Checked)
             {
                 startInfo.Environment["FIFASTREET_SERVER"] = online.Value.Server;
                 startInfo.Environment["FIFASTREET_PLAYER_NAME"] = online.Value.Name;
@@ -1458,6 +1476,7 @@ startInfo.Environment["REX_DRAW_RESOLUTION_SCALE_Y"] =
 
             if (!deck) ApplyMonitorRefresh(monitor, refresh, fullscreen ? width : 0, fullscreen ? height : 0);
             EnsureStadiumThumbs(Path.GetDirectoryName(exe)!, gameRoot);
+            ApplyPortugueseLocale(gameRoot, ref temporaryLocale);
             var started = DateTime.UtcNow;
             using var process = Process.Start(startInfo);
             gameRunning = process != null;
@@ -1491,8 +1510,15 @@ startInfo.Environment["REX_DRAW_RESOLUTION_SCALE_Y"] =
             );
         }
         finally {
+            if (temporaryLocale != null)
+            {
+                try { RestorePortugueseLocale(temporaryLocale); }
+                catch (IOException ex) { ShowError(ex.Message); }
+                catch (UnauthorizedAccessException ex) { ShowError(ex.Message); }
+            }
             StopPresence();
             RestoreMonitorRefresh();
+            launchingGame = false;
             gameRunning = false;
             gameProcess = null;
             if (closeAfterGame) Close();
@@ -1820,6 +1846,9 @@ startInfo.Environment["REX_DRAW_RESOLUTION_SCALE_Y"] =
                 VRR = vrrBox.Checked,
                 MSAA = msaaBox.Checked,
                 Profile = profileBox.SelectedIndex,
+                ClassicGamePath = classicGamePath,
+                Street2026GamePath = street2026GamePath,
+                ModProfile = modProfile,
                 OnlineMode = onlineModeBox.Checked
             };
 
@@ -1853,6 +1882,15 @@ startInfo.Environment["REX_DRAW_RESOLUTION_SCALE_Y"] =
 
             if (settings == null)
                 return;
+            classicGamePath = settings.ClassicGamePath ?? "";
+            street2026GamePath = settings.Street2026GamePath ?? "";
+            modProfile = settings.ModProfile switch
+            {
+                "classic" => "classic",
+                "street2026" => "street2026",
+                null when settings.ClassicSelected => "classic",
+                _ => "vanilla"
+            };
             onlineModeBox.Checked = settings.OnlineMode;
             int languageIndex = Array.IndexOf(GameLanguageIds, settings.GameLanguage);
             gameLanguageBox.SelectedIndex = Math.Max(0, languageIndex);
@@ -1932,11 +1970,34 @@ if (settings.InternalResolutionScale >= 0 &&
             box.SelectedIndex = index;
     }
 
+    private void ApplyPortugueseLocale(string gameRoot, ref string? temporaryLocale)
+    {
+        var folder = Path.Combine(gameRoot, "data", "loc");
+        var brazilian = Path.Combine(folder, "locale_ptbr.big");
+        RestorePortugueseLocale(brazilian);
+        if (GameLanguageIds[Math.Max(0, gameLanguageBox.SelectedIndex)] != PtPtLanguageId) return;
+
+        var portuguese = Path.Combine(folder, "locale_ptpt.big");
+        if (!File.Exists(portuguese))
+            throw new IOException("Português (Portugal): locale_ptpt.big is missing for this game profile.");
+
+        var staged = brazilian + ".switcher-stage";
+        File.Copy(portuguese, staged, true);
+        File.Replace(staged, brazilian, brazilian + ".switcher-original");
+        temporaryLocale = brazilian;
+    }
+
+    private static void RestorePortugueseLocale(string brazilian)
+    {
+        var original = brazilian + ".switcher-original";
+        if (File.Exists(original)) File.Move(original, brazilian, true);
+    }
+
     private void ApplyGameLanguage(ProcessStartInfo startInfo)
     {
         int id = GameLanguageIds[Math.Max(0, gameLanguageBox.SelectedIndex)];
-        startInfo.Environment["REX_USER_LANGUAGE"] = (id == PtBrLanguageId ? 1 : id).ToString(System.Globalization.CultureInfo.InvariantCulture);
-        if (id == PtBrLanguageId) startInfo.Environment["FIFASTREET_GAME_LANGUAGE"] = "pt-BR";
+        startInfo.Environment["REX_USER_LANGUAGE"] = (id is PtBrLanguageId or PtPtLanguageId ? 1 : id).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        if (id is PtBrLanguageId or PtPtLanguageId) startInfo.Environment["FIFASTREET_GAME_LANGUAGE"] = "pt-BR";
         else startInfo.Environment.Remove("FIFASTREET_GAME_LANGUAGE");
     }
 
@@ -2000,6 +2061,10 @@ public class LauncherSettings
     public bool VRR { get; set; } = true;
     public bool MSAA { get; set; } = false;
     public int Profile { get; set; } = 0;
+    public string? ClassicGamePath { get; set; }
+    public string? Street2026GamePath { get; set; }
+    public string? ModProfile { get; set; }
+    public bool ClassicSelected { get; set; }
     public bool OnlineMode { get; set; } = true;
 }
 

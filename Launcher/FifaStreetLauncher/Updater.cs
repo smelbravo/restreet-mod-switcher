@@ -11,7 +11,7 @@ namespace FifaStreetLauncher;
 public partial class LauncherForm
 {
     internal const string LauncherVersion = "2.1.4";
-    private const string ReleasesApi = "https://api.github.com/repos/samuelit0davila/fifa-street-pc-port/releases/latest";
+    private const string ReleasesApi = "https://api.github.com/repos/smelbravo/restreet-mod-switcher/releases/latest";
     private static readonly HttpClient UpdateHttp = CreateUpdateHttp();
     private (string Version, string ExeUrl, string ShaUrl, string Notes)? pendingUpdate;
     private bool updating;

@@ -16,11 +16,11 @@ public partial class LauncherForm
         long id = r.TryGetProperty("id", out var idv) && idv.ValueKind == JsonValueKind.Number ? idv.GetInt64() : 0;
         int players = r.TryGetProperty("players", out var pv) && pv.ValueKind == JsonValueKind.Array ? pv.GetArrayLength() : 0;
         int seats = r.TryGetProperty("seats", out var sv) && sv.ValueKind == JsonValueKind.Number ? sv.GetInt32() : 2;
-        if (players < seats || id == roomLaunchedFor || !onlineModeBox.Checked) return;
+        if (UseMod || players < seats || id == roomLaunchedFor || !onlineModeBox.Checked) return;
         BeginInvoke(async () =>
         {
             // Two overlapping refreshes can both see the full room: the second must not kill the game the first started.
-            if (id == roomLaunchedFor) return;
+            if (UseMod || id == roomLaunchedFor) return;
             roomLaunchedFor = id;
             // A game that is already open sits on some menu the room driver cannot walk from (it starts at the
             // title screen), so the match is never created: close it and start it again for the room. The page

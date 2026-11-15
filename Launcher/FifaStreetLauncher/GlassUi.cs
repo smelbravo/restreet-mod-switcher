@@ -181,6 +181,13 @@ public partial class LauncherForm
                     if (index >= 0 && index < box.Items.Count) box.SelectedIndex = index;
                 }
                 break;
+            case "selectPortuguesePortugal":
+                if (!launchingGame)
+                {
+                    gameLanguageBox.SelectedIndex = Array.IndexOf(GameLanguageIds, PtPtLanguageId);
+                    SaveModSettings();
+                }
+                break;
             case "toggle":
                 if (GlassToggles().TryGetValue(id, out var t) && t.Enabled && m.TryGetProperty("value", out var v))
                     t.Checked = v.GetBoolean();
@@ -202,6 +209,28 @@ public partial class LauncherForm
             case "shortcut": CreateDesktopShortcut(); break;
             case "state": if (pendingUpdate is { } pu) PostToPage(new { type = "update", version = pu.Version, notes = pu.Notes }); PushPerfHistory(); break;
             case "perfHistory": PushPerfHistory(); return;
+            case "downloadMod" when UseMod:
+            case "modPreview" when UseMod:
+                string url = (modProfile, cmd) switch
+                {
+                    ("street2026", "downloadMod") => "https://drive.google.com/file/d/1XKbAZtVdSmj5AMh3z9BkJjzxTupsrrLO/view",
+                    ("street2026", _) => "https://x.com/Jespindola15_/status/2114423014209024459",
+                    (_, "downloadMod") => "https://sharemods.com/8i7py52glnt4/FIFAStreetClassic.zip.html",
+                    _ => "https://www.patreon.com/biavva/posts/patch-fifa-beta-173393762"
+                };
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true })?.Dispose();
+                return;
+            case "browseMod": BrowseModGame(); break;
+            case "selectModProfile":
+                if (!launchingGame && !AnyGameRunning() &&
+                    m.TryGetProperty("value", out var profileValue) &&
+                    profileValue.ValueKind == JsonValueKind.String &&
+                    profileValue.GetString() is "vanilla" or "classic" or "street2026")
+                {
+                    modProfile = profileValue.GetString()!;
+                    SaveModSettings();
+                }
+                break;
             case "saves": PushSaves(); return;
             case "savesRestore": RestoreSaveFromPage(m.TryGetProperty("id", out var sid) ? sid.GetString() : null); return;
             case "updateGo": _ = InstallUpdateAsync(); return;
@@ -339,6 +368,7 @@ public partial class LauncherForm
             exe = exePathBox.Text, data = gamePathBox.Text,
             summary = hardwareLabel.Text, status = statusLabel.Text, statusOk = statusLabel.ForeColor != Color.FromArgb(255, 120, 120),
             running = gameRunning, deck = deckBase,
+            modProfiles = new { selected = modProfile, path = UseMod ? ModGamePath : "", locked = launchingGame },
             api = graphicsApiBox.SelectedItem?.ToString(), profile = profileBox.SelectedItem?.ToString(),
             version = "V" + LauncherVersion + " · ONLINE BETA",
         });

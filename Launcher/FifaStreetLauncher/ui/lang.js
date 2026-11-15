@@ -3,10 +3,28 @@
 // a number. A MutationObserver covers the texts the page and the launcher set later. The choice is kept in this
 // page's storage; with none, the Windows language is used (English when it is not one of these).
 (() => {
-  const LANGS = [['en', 'English'], ['pt-BR', 'Português (Brasil)'], ['es', 'Español'], ['fr', 'Français'], ['de', 'Deutsch'], ['it', 'Italiano']];
-  const COL = {'pt-BR': 0, es: 1, fr: 2, de: 3, it: 4};
+  const LANGS = [['en', 'English'], ['pt-BR', 'Português (Brasil)'], ['pt-PT', 'Português (Portugal)'], ['es', 'Español'], ['fr', 'Français'], ['de', 'Deutsch'], ['it', 'Italiano']];
+  const COL = {'pt-PT': 0, 'pt-BR': 0, es: 1, fr: 2, de: 3, it: 4};
   // English: [Português (Brasil), Español, Français, Deutsch, Italiano]
   const D = {
+    "Double-click a mod to open its page.": ["Dê dois cliques em um mod para abrir a página.", "Haz doble clic en un mod para abrir su página.", "Double-cliquez sur un mod pour ouvrir sa page.", "Doppelklicke auf einen Mod, um seine Seite zu öffnen.", "Fai doppio clic su una mod per aprirne la pagina."],
+    "Updated squads and kits": ["Elencos e uniformes atualizados", "Plantillas y equipaciones actualizadas", "Effectifs et maillots actualisés", "Aktualisierte Kader und Trikots", "Rose e divise aggiornate"],
+    "Download mod": ["Baixar mod", "Descargar mod", "Télécharger le mod", "Mod herunterladen", "Scarica la mod"],
+    "View original post": ["Ver publicação original", "Ver publicación original", "Voir la publication originale", "Originalbeitrag ansehen", "Vedi il post originale"],
+    "Back to mods": ["Voltar aos mods", "Volver a los mods", "Retour aux mods", "Zurück zu den Mods", "Torna alle mod"],
+    "Screenshots": ["Capturas de tela", "Capturas de pantalla", "Captures d’écran", "Screenshots", "Screenshot"],
+    "Previous image": ["Imagem anterior", "Imagen anterior", "Image précédente", "Vorheriges Bild", "Immagine precedente"],
+    "Next image": ["Próxima imagem", "Imagen siguiente", "Image suivante", "Nächstes Bild", "Immagine successiva"],
+    "Game profile": ["Perfil de jogo", "Perfil de juego", "Profil de jeu", "Spielprofil", "Profilo di gioco"],
+    "Original 2012 game": ["Jogo original de 2012", "Juego original de 2012", "Jeu original de 2012", "Originalspiel von 2012", "Gioco originale del 2012"],
+    "Historic clubs, legends and classic kits": ["Clubes históricos, lendas e uniformes clássicos", "Clubes históricos, leyendas y equipaciones clásicas", "Clubs historiques, légendes et maillots classiques", "Historische Vereine, Legenden und klassische Trikots", "Club storici, leggende e divise classiche"],
+    "2025/26 squads, updated clubs and national teams": ["Elencos 2025/26, clubes e seleções atualizados", "Plantillas 2025/26, clubes y selecciones actualizados", "Effectifs 2025/26, clubs et sélections actualisés", "Kader 2025/26, aktualisierte Vereine und Nationalteams", "Rose 2025/26, club e nazionali aggiornati"],
+    "Select mod Game folder": ["Selecionar pasta Game do mod", "Seleccionar carpeta Game del mod", "Sélectionner le dossier Game du mod", "Game-Ordner des Mods auswählen", "Seleziona la cartella Game della mod"],
+    "No mod Game folder selected.": ["Nenhuma pasta Game do mod selecionada.", "No se ha seleccionado la carpeta Game del mod.", "Aucun dossier Game du mod sélectionné.", "Kein Game-Ordner für den Mod ausgewählt.", "Nessuna cartella Game selezionata per la mod."],
+    "Each profile has its own World Tour saves. Mod profiles launch offline.": ["Cada perfil tem seus próprios dados do World Tour. Os mods iniciam offline.", "Cada perfil tiene sus propias partidas del Tour Mundial. Los mods se inician sin conexión.", "Chaque profil possède ses propres sauvegardes du Tour mondial. Les mods démarrent hors ligne.", "Jedes Profil hat eigene World-Tour-Spielstände. Mods starten offline.", "Ogni profilo ha salvataggi separati del Tour Mondiale. Le mod si avviano offline."],
+    "Giovani Biava’s Classic patch brings historic clubs and national teams, football legends, retro kits and World Cup balls to ReStreet.": ["O patch Classic de Giovani Biava traz clubes e seleções históricos, lendas, uniformes retrô e bolas das Copas.", "El parche Classic de Giovani Biava añade clubes y selecciones históricos, leyendas, equipaciones retro y balones de los Mundiales.", "Le patch Classic de Giovani Biava ajoute des clubs et sélections historiques, des légendes, des maillots rétro et des ballons de Coupe du monde.", "Giovani Biavas Classic-Patch ergänzt historische Vereine und Nationalteams, Legenden, Retrotrikots und WM-Bälle.", "La patch Classic di Giovani Biava aggiunge club e nazionali storici, leggende, divise rétro e palloni dei Mondiali."],
+    "Jespindola’s mod adds 2025/26 squads, updated club and national team kits, and a Legends League alongside the original teams.": ["O mod de Jespindola traz elencos 2025/26, uniformes atualizados e uma Liga das Lendas, além dos times originais.", "El mod de Jespindola añade plantillas 2025/26, equipaciones actualizadas y una Liga de Leyendas junto a los equipos originales.", "Le mod de Jespindola ajoute les effectifs 2025/26, des maillots actualisés et une ligue des légendes aux équipes d’origine.", "Jespindolas Mod ergänzt die Originalteams um Kader für 2025/26, aktuelle Trikots und eine Legendenliga.", "La mod di Jespindola aggiunge rose 2025/26, divise aggiornate e una Lega delle Leggende accanto alle squadre originali."],
+
     'Home': ['Início', 'Inicio', 'Accueil', 'Start', 'Home'],
     'Social': ['Social', 'Social', 'Social', 'Social', 'Social'],
     'Matches': ['Partidas', 'Partidas', 'Matchs', 'Spiele', 'Partite'],
@@ -609,20 +627,97 @@
   try { lang = localStorage.getItem('restreet.uiLang'); } catch (e) { /* no storage: the Windows language below */ }
   if (!LANGS.some(l => l[0] === lang)) {
     const n = (navigator.language || 'en').toLowerCase();
-    lang = n.startsWith('pt') ? 'pt-BR' : (['es', 'fr', 'de', 'it'].find(c => n.startsWith(c)) || 'en');
+    lang = n === 'pt-pt' ? 'pt-PT' : n.startsWith('pt') ? 'pt-BR' : (['es', 'fr', 'de', 'it'].find(c => n.startsWith(c)) || 'en');
   }
+
+  const PT_PT = {
+    "Double-click a mod to open its page.": "Faz duplo clique num mod para abrir a sua página.",
+    "Updated squads and kits": "Plantéis e equipamentos atualizados",
+
+    'Screenshots': 'Capturas de ecrã',
+    'Previous image': 'Imagem anterior',
+    'Next image': 'Imagem seguinte',
+    'Back to mods': 'Voltar aos mods',
+    'Giovani Biava’s Classic patch brings historic clubs and national teams, football legends, retro kits and World Cup balls to ReStreet.': 'O patch Classic de Giovani Biava traz ao ReStreet clubes e seleções históricos, lendas do futebol, equipamentos retro e bolas de Campeonatos do Mundo.',
+    'Jespindola’s mod adds 2025/26 squads, updated club and national team kits, and a Legends League alongside the original teams.': 'O mod de Jespindola acrescenta plantéis de 2025/26, equipamentos atualizados de clubes e seleções e uma Liga das Lendas, além das equipas originais.',
+
+    'Download mod': 'Descarregar mod',
+    'View original post': 'Ver publicação original',
+    'Home': 'Início',
+    'Matches': 'Partidas',
+    'Display': 'Ecrã',
+    'GAME LANGUAGE': 'IDIOMA DO JOGO',
+    'LAUNCHER LANGUAGE': 'IDIOMA DO LAUNCHER',
+    'Original 2012 game': 'Jogo original de 2012',
+    'Historic clubs, legends and classic kits': 'Clubes históricos, lendas e equipamentos clássicos',
+    '2025/26 squads, updated clubs and national teams': 'Plantéis de 2025/26, clubes e seleções atualizados',
+    'Game profile': 'Perfil de jogo',
+    'Each profile has its own World Tour saves.': 'Cada perfil tem os seus próprios dados guardados do World Tour.',
+    'Mod profiles launch offline.': 'Os perfis com mods são iniciados em modo offline.',
+    'Prepare a separate Game folder for each mod, then select that folder here.': 'Prepara uma pasta Game para cada mod e seleciona-a aqui.',
+    'Select mod Game folder': 'Selecionar pasta Game do mod',
+    'Download FIFA Street 2026': 'Descarregar FIFA Street 2026',
+    'No mod Game folder selected.': 'Seleciona a pasta Game do mod.',
+    "is back online.": "está de volta online.",
+    "Division Match, weekly Cups and Friend Matches with real players. Pick up where you left off.": "Jogos de divisão, taças semanais e jogos entre amigos. Continua de onde ficaste.",
+    "YOUR TEAM": "A TUA EQUIPA",
+    "My World Tour team": "A minha equipa do Tour Mundial",
+    "World Tour team": "Equipa do Tour Mundial",
+    "my World Tour team": "a minha equipa do Tour Mundial",
+    "on your server": "no teu servidor",
+    "Balanced (default)": "Equilibrado (predefinição)",
+    "No open matches right now. Post one and anyone on your server can join.": "Ainda não há jogos abertos. Cria um jogo para que outros jogadores do teu servidor possam entrar.",
+    "Online is not set up. Run the online patch again": "O modo online ainda não está configurado. Volta a executar o patch online.",
+    "Online is not set up. Run the online patch again.": "O modo online ainda não está configurado. Volta a executar o patch online.",
+    "Online patch not installed": "Patch online por instalar",
+    "Playing": "A jogar",
+    "PLAYING": "A JOGAR",
+    "Starting ReStreet...": "A iniciar o ReStreet…",
+    "Check your settings": "Verifica as tuas definições",
+    "Donate": "Fazer um donativo",
+    "Choose how other players see you": "Escolhe como apareces aos outros jogadores",
+    "Choose the team you will play your next match with.": "Escolhe a equipa para o teu próximo jogo.",
+    "Choose the team you will play this match with.": "Escolhe a equipa para este jogo.",
+    "Choose the team you will play ranked matches with.": "Escolhe a equipa para os jogos competitivos.",
+    "Post a match": "Criar um jogo",
+    "Open Social": "Abrir o separador Social",
+    "Join a friend’s match": "Entrar no jogo de um amigo",
+    "Each profile has its own World Tour saves. Mod profiles launch offline.": "Cada perfil tem os seus próprios dados do Tour Mundial. Os perfis com mods arrancam em modo offline."
+  };
+  const PT_PT_TERMS = [
+    [/\btelas?\b/gi, 'ecrã'],
+    [/\barquivos\b/gi, 'ficheiros'],
+    [/\barquivo\b/gi, 'ficheiro'],
+    [/\busuários\b/gi, 'utilizadores'],
+    [/\busuário\b/gi, 'utilizador'],
+    [/\bcontrole(s)?\b/gi, 'comando$1'],
+    [/\bbaixar\b/gi, 'descarregar'],
+    [/\bsalvar\b/gi, 'guardar'],
+    [/\bequipe(s)?\b/gi, 'equipa$1'],
+    [/\bgoleiro(s)?\b/gi, 'guarda-redes']
+  ];
 
   function tr(text) {
     if (lang === 'en' || !text) return text;
     const m = text.match(/^(\s*)([\s\S]*?)(\s*)$/);
     const core = m[2], col = COL[lang];
-    let out = D[core] && D[core][col];
+    const override = lang === 'pt-PT' && Object.hasOwn(PT_PT, core) ? PT_PT[core] : null;
+    let out = override || (D[core] && D[core][col]);
     if (!out) {
       for (const [re, row] of PATTERNS) {
         const g = core.match(re);
         if (!g) continue;
         out = row[col].replace(/\$T(\d)/g, (_, i) => tr(g[i] || '')).replace(/\$(\d)/g, (_, i) => g[i] || '');
         break;
+      }
+    }
+    if (out && !override && lang === 'pt-PT') {
+      for (const [pattern, replacement] of PT_PT_TERMS) {
+        out = out.replace(pattern, (word, suffix) => {
+          const localized = replacement.replace('$1', typeof suffix === 'string' ? suffix : '');
+          if (word === word.toUpperCase()) return localized.toUpperCase();
+          return word[0] === word[0].toUpperCase() ? localized[0].toUpperCase() + localized.slice(1) : localized;
+        });
       }
     }
     return out ? m[1] + out + m[3] : text;
@@ -686,6 +781,7 @@
   }
   function setLang(code) {
     lang = code;
+    if (code === "pt-PT") send({cmd: "selectPortuguesePortugal"});
     try { localStorage.setItem('restreet.uiLang', code); } catch (e) { /* this session only */ }
     document.documentElement.lang = code;
     walk(document.body);

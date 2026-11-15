@@ -375,6 +375,54 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 @media (max-width:820px){.ticket{--stub:0px;grid-template-columns:1fr;-webkit-mask:none;mask:none}.ticket>.body{border-right:0;border-bottom:2px dashed var(--rule)}.ticket>.stub{border-radius:0 0 14px 14px}.fields{grid-template-columns:1fr 1fr}.fld:nth-child(3){border-left:0}.fld:nth-child(n+3){border-top:1px solid var(--rule)}#p-social.on{grid-template-columns:1fr}.people{display:none}}
 @media (max-height:760px){.side{padding-top:12px}.grp{padding-top:9px}.nav{padding:7px 10px}.credits{display:none}.home{gap:14px}.season h1{font-size:50px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+.mod-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}
+.mod-card{display:block;min-width:0;overflow:hidden;border-radius:12px;background:#181b23;color:inherit;border:1px solid #363b48;text-align:left;font:inherit;padding:0;cursor:pointer}
+.mod-card:hover:not(:disabled){border-color:#aaa}
+.mod-card[aria-pressed=true]{border-color:#f2c744;box-shadow:0 0 0 1px #f2c744}
+.mod-card:focus-visible{outline:2px solid white;outline-offset:3px}
+.mod-card:disabled{cursor:default}
+.mod-card img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+.mod-card strong,.mod-card small{display:block;margin:12px 12px 0}
+.mod-card small{margin:6px 12px 14px;color:#b6becd;line-height:1.4}
+.mod-details{background:#181b23;border:1px solid #363b48;border-radius:12px;padding:16px;margin-top:14px}
+#modPath{overflow-wrap:anywhere;margin-bottom:0}
+@media(max-width:780px){.mod-grid{grid-template-columns:repeat(auto-fit,minmax(155px,1fr))}}
+#p-mods.details-open .mod-grid,#p-mods.details-open .mod-intro{display:none}
+.mod-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin:16px 0}
+.mod-gallery button{padding:0;overflow:hidden;cursor:zoom-in}
+.mod-gallery img{display:block;width:100%;aspect-ratio:16/9;object-fit:contain;background:#0c0e13}
+#modLightbox{background:#101217;color:white;border:1px solid #495064;max-width:92vw;max-height:92vh}
+#modLightbox::backdrop{background:#000c}
+#modLightbox img{display:block;max-width:85vw;max-height:78vh;object-fit:contain;margin-top:8px}
+
+.mod-grid{gap:18px;margin:22px 0 18px}
+.mod-card img{object-fit:contain;background:#101217}
+.mod-card strong{font-size:16px}
+.mod-card small{min-height:2.8em}
+.mod-details{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:14px 16px}
+.mod-details[hidden]{display:none}
+#modPath{flex-basis:100%;margin:4px 0 0}
+.mod-page-head{margin:16px 0 22px}
+#modTitle{font-size:28px;margin:14px 0 5px}
+#modDescription{color:#b6becd;max-width:66ch;line-height:1.55}
+.mod-gallery{grid-template-columns:repeat(auto-fit,minmax(175px,1fr));margin:8px 0 20px}
+.mod-gallery .btn:hover{border-color:#f2c744}
+#modLightbox{position:fixed;inset:0;margin:auto;width:min(1050px,94vw);max-width:none;max-height:94vh;padding:14px;border-radius:14px;overflow:auto}
+.mod-view-bar,.mod-view-stage{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mod-view-stage{display:grid;grid-template-columns:auto minmax(0,1fr) auto}
+#modLightbox img{width:100%;height:min(73vh,720px);max-width:none;margin:0;object-fit:contain}
+.mod-arrow{font-size:24px;padding:6px 12px}
+#modPosition{color:#b6becd;font-variant-numeric:tabular-nums}
+
+.mod-hint{color:#b6becd;margin:8px 0 0}
+.mod-poster img{width:100%;height:100%;object-fit:cover}
+.mod-poster-copy{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:6% 5% 6% 48%;background:linear-gradient(90deg,transparent 25%,#10151bdc 55%,#10151b 100%);border-bottom:3px solid #f2c744}
+.mod-poster-copy b{color:#f2c744;font:800 clamp(18px,3vw,42px)/.95 "Saira Extra Condensed",sans-serif}
+.mod-poster-copy em{font-style:normal;color:white;font-size:clamp(8px,1vw,13px);margin-top:7px}
+.mod-zoom-stage{height:min(73vh,720px);overflow:auto;display:block;background:#0b0d11}
+#modLightbox .mod-zoom-stage img{height:100%;width:100%;object-fit:contain;cursor:zoom-in}
+#modLightbox .mod-zoom-stage.zoomed img{height:auto;max-height:none;max-width:none;cursor:zoom-out}
 </style></head><body>
 <div class="win" id="win">
   <div class="titlebar" id="titlebar"><span class="ttl">RESTREET LAUNCHER</span>
@@ -395,6 +443,7 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
     <button type="button" class="nav" data-p="p-controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg><span class="lb">Controls</span></button>
     <button type="button" class="nav" data-p="p-online"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span class="lb">Online</span></button>
     <button type="button" class="nav" data-p="p-perf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20h18M6 16l4-5 3 3 5-7"/></svg><span class="lb">Performance</span></button>
+    <button type="button" class="nav" id="modsTab" style="display:none" data-p="p-mods"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16M8 4v6M16 9v6M10 14v6"/></svg><span class="lb">Mods</span></button>
     <button type="button" class="nav" data-p="p-advanced"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="lb">Advanced</span></button>
     <div class="spacer"></div>
     <div class="tg side-tg" data-id="onlineMode" tabindex="0" role="switch" title="Off: the game starts offline, with no server, friends or rooms."><div>Play online</div><div class="sw"></div></div>
@@ -543,6 +592,37 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
     <p class="khelp">Click a key to change it, then press the new key (or a mouse button). Each action can have two keys. <b>Esc</b> cancels, <b>right-click</b> clears a key.</p>
     <div id="kList"></div>
     <p class="knote" id="kNote" role="status"></p>
+  </div></section>
+  <section class="page" id="p-mods"><div class="panel">
+    <h2>Mods</h2>
+    <p class="sub mod-intro">Each profile has its own World Tour saves. Mod profiles launch offline.</p>
+    <p class="mod-hint mod-intro">Double-click a mod to open its page.</p>
+    <div class="mod-grid" role="group" aria-label="Game profile">
+      <button type="button" class="mod-card" data-mod="vanilla" aria-pressed="false"><img src="mods-vanilla.jpg" alt=""><strong>Vanilla</strong><small>Original 2012 game</small></button>
+      <button type="button" class="mod-card" data-mod="classic" aria-pressed="false"><img src="classic-en.png" data-cover="classic" alt=""><strong>FIFA Street Classic</strong><small>Historic clubs, legends and classic kits</small></button>
+      <button type="button" class="mod-card" data-mod="street2026" aria-pressed="false"><img src="2026-en.png" data-cover="street2026" alt=""><strong>FIFA Street 2026</strong><small>2025/26 squads, updated clubs and national teams</small></button>
+    </div>
+    <div id="modGalleryPage" hidden>
+      <div class="mod-page-head"><button type="button" class="btn" id="modBack">Back to mods</button>
+      <h3 id="modTitle"></h3>
+      <p id="modDescription"></p></div>
+      <h3>Screenshots</h3>
+      <div class="mod-gallery" id="modGallery"></div>
+    </div>
+    <dialog id="modLightbox" aria-label="Screenshots">
+      <div class="mod-view-bar"><span id="modPosition" aria-live="polite"></span><form method="dialog"><button class="btn">Close</button></form></div>
+      <div class="mod-view-stage">
+        <button type="button" class="btn mod-arrow" id="modPrev" aria-label="Previous image">‹</button>
+        <div id="modZoomStage" class="mod-zoom-stage"><img id="modFullImage" alt=""></div>
+        <button type="button" class="btn mod-arrow" id="modNext" aria-label="Next image">›</button>
+      </div>
+    </dialog>
+    <div class="mod-details" id="modDetails">
+    <button type="button" class="btn" id="browseMod">Select mod Game folder</button>
+    <button type="button" class="btn" id="downloadMod">Download mod</button>
+    <button type="button" class="btn" id="modPreview">View original post</button>
+    <p class="sub" id="modPath"></p>
+    </div>
   </div></section>
   <section class="page" id="p-advanced"><div class="panel">
     <h2>Advanced</h2><p class="sub">Game files and renderer options for textures, lighting, black screens and stutter.</p>
@@ -813,7 +893,117 @@ document.querySelectorAll('.kpre').forEach(b => b.onclick = () => {
   kWait = null; send({cmd: 'controls', value: {preset: b.dataset.preset, keyboard: true}});
   $('kNote').textContent = b.querySelector('b').textContent + ' keys set.';
 });
+const modCards = document.querySelectorAll('.mod-card');
+const modGallery = {
+  classic: {title: 'FIFA Street Classic', count: 5, prefix: 'classic',
+    description: 'Giovani Biava’s Classic patch brings historic clubs and national teams, football legends, retro kits and World Cup balls to ReStreet.'},
+  street2026: {title: 'FIFA Street 2026', count: 5, prefix: '2026',
+    description: 'Jespindola’s mod adds 2025/26 squads, updated club and national team kits, and a Legends League alongside the original teams.'}
+};
+let galleryId = null;
+let galleryIndex = 1;
+let modZoom = 1;
+function setModZoom(scale) {
+  const stage = $('modZoomStage');
+  const image = $('modFullImage');
+  const fit = Math.min(stage.clientWidth / image.naturalWidth, stage.clientHeight / image.naturalHeight);
+  modZoom = Math.max(1, Math.min(4, scale));
+  stage.classList.toggle('zoomed', modZoom > 1);
+  image.style.width = modZoom > 1 && Number.isFinite(fit) ? image.naturalWidth * fit * modZoom + 'px' : '';
+  if (modZoom === 1) stage.scrollTo(0, 0);
+}
+$('modZoomStage').addEventListener('wheel', event => {
+  event.preventDefault();
+  setModZoom(modZoom * (event.deltaY < 0 ? 1.2 : 1 / 1.2));
+}, {passive: false});
+$('modFullImage').ondblclick = () => setModZoom(modZoom === 1 ? 2 : 1);
+function modCover(id) {
+  const locale = document.documentElement.lang;
+  if (id === 'classic') return locale === 'pt-PT' ? 'classic-ptpt.png' : locale === 'pt-BR' ? 'classic-1.png' : 'classic-en.png';
+  return locale === 'pt-PT' ? '2026-ptpt.png' : locale === 'pt-BR' ? '2026-ptbr.png' : '2026-en.png';
+}
+function galleryImage(id, index) {
+  if (index === 1) return modCover(id);
+  const mod = modGallery[id];
+  return mod.prefix + '-' + (id === 'street2026' ? index - 1 : index) + '.png';
+}
+function refreshModCovers() {
+  document.querySelectorAll('[data-cover]').forEach(image => {
+    image.src = modCover(image.dataset.cover);
+  });
+}
+new MutationObserver(refreshModCovers).observe(document.documentElement, {attributes: true, attributeFilter: ['lang']});
+refreshModCovers();
+function showModImage(index) {
+  setModZoom(1);
+  const mod = modGallery[galleryId];
+  galleryIndex = (index - 1 + mod.count) % mod.count + 1;
+  $('modFullImage').src = galleryImage(galleryId, galleryIndex);
+  $('modFullImage').alt = mod.title + ' · ' + galleryIndex;
+  $('modPosition').textContent = galleryIndex + ' / ' + mod.count;
+}
+$('modPrev').onclick = () => showModImage(galleryIndex - 1);
+$('modNext').onclick = () => showModImage(galleryIndex + 1);
+$('modLightbox').addEventListener('keydown', event => {
+  if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+    event.preventDefault();
+    showModImage(galleryIndex + (event.key === 'ArrowLeft' ? -1 : 1));
+  }
+});
+modCards.forEach(card => {
+  card.onclick = () => send({cmd: 'selectModProfile', value: card.dataset.mod});
+  card.onkeydown = event => {
+    if (event.key === 'Enter' && !event.repeat) { event.preventDefault(); card.click(); card.ondblclick(); }
+  };
+  card.ondblclick = () => {
+  const id = card.dataset.mod;
+  send({cmd: 'selectModProfile', value: id});
+  const mod = modGallery[id];
+  if (!mod) return;
+  galleryId = id;
+  $('modTitle').textContent = mod.title;
+  $('modDescription').textContent = mod.description;
+  $('modGallery').replaceChildren();
+  for (let index = 1; index <= mod.count; index++) {
+    const image = document.createElement('img');
+    image.src = galleryImage(id, index);
+    image.alt = mod.title + ' · ' + index;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn';
+    button.append(image);
+    button.onclick = () => {
+      showModImage(index);
+      $('modLightbox').showModal();
+    };
+    $('modGallery').append(button);
+  }
+  $('modGalleryPage').hidden = false;
+  $('p-mods').classList.add('details-open');
+  $('modBack').focus();
+  };
+});
+$('modBack').onclick = () => {
+  $('modGalleryPage').hidden = true;
+  $('p-mods').classList.remove('details-open');
+  document.querySelector('.mod-card[aria-pressed=true]')?.focus();
+};
+$('browseMod').onclick = () => send({cmd: 'browseMod'});
+$('downloadMod').onclick = () => send({cmd: 'downloadMod'});
+$('modPreview').onclick = () => send({cmd: 'modPreview'});
+
 function render(s) {
+  if (s.modProfiles) {
+    $('modsTab').style.display = '';
+    const modded = s.modProfiles.selected !== 'vanilla';
+    modCards.forEach(card => {
+      card.setAttribute('aria-pressed', String(card.dataset.mod === s.modProfiles.selected));
+      card.disabled = s.modProfiles.locked;
+    });
+    $('modDetails').hidden = !modded;
+    $('browseMod').disabled = !modded || s.modProfiles.locked;
+    $('modPath').textContent = modded ? s.modProfiles.path || 'No mod Game folder selected.' : '';
+  }
   if (s.controls) renderControls(s.controls);
   for (const [id, f] of Object.entries(s.fields || {})) fillDD(id, f);
   for (const [id, t] of Object.entries(s.toggles || {})) { const el = document.querySelector('.tg[data-id="' + id + '"]'); if (!el) continue;
