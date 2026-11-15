@@ -61,6 +61,6 @@ O launcher inclui uma interface em português de Portugal. A opção PT-PT dentr
 ## Credits and licence / Créditos e licença
 
 - ReStreet port and original launcher / Port ReStreet e launcher original: **SamuelitoDaVila**.
-- **FIFA Street Classic** by Giovani Biava and the Classic Patch contributors. [Mod page on Patreon](https://www.patreon.com/biavva/posts/patch-fifa-beta-173393762) · [Giovani Biava on X](https://x.com/giovanibiava)
+- **FIFA Street Classic** by Giovani Biava and the Classic Patch contributors. [Mod page on Patreon](https://www.patreon.com/biavva/posts/patch-fifa-beta-173393762) · [Download](https://t.co/m5EXewDc84) · [Giovani Biava on X](https://x.com/giovanibiava)
 - **FIFA Street 2026** by Jespindola. [Mod download on Google Drive](https://drive.google.com/file/d/1XKbAZtVdSmj5AMh3z9BkJjzxTupsrrLO/view) · [Jespindola on X](https://x.com/Jespindola15_)
 - See / Consulta [CREDITS.md](CREDITS.md) and / e [LICENSE](LICENSE).
