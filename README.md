@@ -6,19 +6,13 @@
 
 ReStreet Mod Switcher is a Windows launcher fork of [SamuelitoDaVila’s ReStreet](https://github.com/samuelit0davila/fifa-street-pc-port), the PC port of FIFA Street (2012). It adds a **Mods** tab for switching between **Vanilla**, **FIFA Street Classic** and **FIFA Street 2026**. Each mod runs offline with its own game folder and World Tour saves. Click a card to select its profile and double-click it to open its gallery.
 
-The repository contains the launcher source. You need your own game, a working ReStreet installation and separate downloads for the mods. The download buttons open the authors’ download pages in your browser.
+### Install from GitHub Releases
 
-### Install the launcher
+1. Download **ReStreet-Mod-Switcher-Setup.exe** from [v0.1.0 for Windows](https://github.com/smelbravo/restreet-mod-switcher/releases/tag/v0.1.0).
+2. Run it, select your own FIFA Street (2012) Xbox 360 ISO and choose an empty destination folder. An internet connection is required. Setup downloads ReStreet 2.1.4 from its original release, verifies its SHA-256 checksum, installs the base game from your ISO and adds this fork’s launcher in the same folder.
+3. Open `FifaStreetLauncher.exe` in that folder and test **Vanilla**. Windows x64 and the WebView2 Runtime are required for the Mods interface. Back up `Documents\fifastreet` before installing mods.
 
-1. Install and test [ReStreet 2.1.4](https://github.com/samuelit0davila/fifa-street-pc-port/releases/tag/v2.1.4-online-beta) with your own copy of FIFA Street. This is the version used to test the mod profiles.
-2. Copy the working ReStreet installation to a new folder, such as `D:\Games\ReStreet Mod Switcher`. Keep its `Game` and `Binaries` folders. Back up your Windows Documents folder’s `fifastreet` directory before running any patch installer.
-3. Install the .NET 8 SDK and WebView2 Runtime. Clone this repository, open PowerShell in the clone and build the launcher:
-
-   ```powershell
-   dotnet publish Launcher/FifaStreetLauncher/FifaStreetLauncher.csproj -c Release -o launcher-build
-   ```
-
-4. Close ReStreet. Copy the **contents** of `launcher-build` into the new installation folder, alongside `Game` and `Binaries`. Run `FifaStreetLauncher.exe` there and test **Vanilla** first.
+To build the installer from source, run `./Installer/BuildSwitcherSetup.ps1 -Output ./dist/ReStreet-Mod-Switcher-Setup.exe` with the .NET 8 SDK on Windows.
 
 ### Install the mods manually
 
@@ -40,19 +34,13 @@ The launcher includes a European Portuguese UI. The in-game PT-PT option also ne
 
 O ReStreet Mod Switcher é um fork para Windows do [ReStreet de SamuelitoDaVila](https://github.com/samuelit0davila/fifa-street-pc-port), o port de FIFA Street (2012) para PC. Acrescenta a aba **Mods** para alternar entre **Vanilla**, **FIFA Street Classic** e **FIFA Street 2026**. Cada mod arranca offline com a sua própria pasta de jogo e dados do Tour Mundial. Um clique seleciona o perfil e um duplo clique abre a galeria.
 
-O repositório contém o código do launcher. Precisas da tua cópia do jogo, de uma instalação funcional do ReStreet e dos downloads dos mods. Os botões de descarga abrem as páginas dos autores no navegador.
+### Instalar a partir das Releases do GitHub
 
-### Instalar o launcher
+1. Descarrega **ReStreet-Mod-Switcher-Setup.exe** da [versão v0.1.0 para Windows](https://github.com/smelbravo/restreet-mod-switcher/releases/tag/v0.1.0).
+2. Abre o instalador, seleciona o teu ISO de FIFA Street (2012) para Xbox 360 e indica uma pasta de destino vazia. É necessária ligação à Internet. O instalador descarrega o ReStreet 2.1.4 da publicação original, verifica o SHA-256, instala o jogo a partir do teu ISO e acrescenta o launcher do fork na mesma pasta.
+3. Abre `FifaStreetLauncher.exe` nessa pasta e testa o **Vanilla**. A interface Mods requer Windows x64 e WebView2 Runtime. Faz uma cópia de segurança de `Documentos\fifastreet` antes de instalares os mods.
 
-1. Instala e testa o [ReStreet 2.1.4](https://github.com/samuelit0davila/fifa-street-pc-port/releases/tag/v2.1.4-online-beta) com a tua cópia do FIFA Street. Foi a versão usada para testar os perfis de mods.
-2. Copia a instalação funcional para uma nova pasta, por exemplo `D:\Jogos\ReStreet Mod Switcher`. Mantém as pastas `Game` e `Binaries`. Faz uma cópia de segurança da pasta `fifastreet` nos Documentos do Windows antes de correres instaladores de mods.
-3. Instala o SDK do .NET 8 e o WebView2 Runtime. Clona este repositório, abre o PowerShell na pasta do clone e compila:
-
-   ```powershell
-   dotnet publish Launcher/FifaStreetLauncher/FifaStreetLauncher.csproj -c Release -o launcher-build
-   ```
-
-4. Fecha o ReStreet. Copia o **conteúdo** de `launcher-build` para a nova instalação, ao lado de `Game` e `Binaries`. Abre `FifaStreetLauncher.exe` nessa pasta e testa primeiro o **Vanilla**.
+Para compilar o instalador a partir do código, executa `./Installer/BuildSwitcherSetup.ps1 -Output ./dist/ReStreet-Mod-Switcher-Setup.exe` no Windows com o SDK do .NET 8.
 
 ### Instalar os mods manualmente
 
