@@ -389,6 +389,11 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 #modPath{overflow-wrap:anywhere;margin-bottom:0}
 @media(max-width:780px){.mod-grid{grid-template-columns:repeat(auto-fit,minmax(155px,1fr))}}
 #p-mods.details-open .mod-grid,#p-mods.details-open .mod-intro{display:none}
+#p-mods.details-open #thunderstore{display:none}
+#thunderstore{margin-top:24px}
+.thunderstore-actions{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.thunderstore-package{padding:12px 0;border-bottom:1px solid var(--seam)}
+.thunderstore-package p{margin:4px 0;overflow-wrap:anywhere}
 .mod-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin:16px 0}
 .mod-gallery button{padding:0;overflow:hidden;cursor:zoom-in}
 .mod-gallery img{display:block;width:100%;aspect-ratio:16/9;object-fit:contain;background:#0c0e13}
@@ -623,6 +628,15 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
     <button type="button" class="btn" id="modPreview">View original post</button>
     <p class="sub" id="modPath"></p>
     </div>
+    <section id="thunderstore" aria-labelledby="thunderstoreTitle">
+      <h3 id="thunderstoreTitle">Thunderstore</h3>
+      <div class="thunderstore-actions">
+        <button type="button" class="btn" id="thunderstoreRefresh">Refresh catalog</button>
+        <button type="button" class="btn" id="thunderstoreCommunity">Open Thunderstore</button>
+      </div>
+      <p class="sub" id="thunderstoreStatus" role="status"></p>
+      <div id="thunderstorePackages"></div>
+    </section>
   </div></section>
   <section class="page" id="p-advanced"><div class="panel">
     <h2>Advanced</h2><p class="sub">Game files and renderer options for textures, lighting, black screens and stutter.</p>
@@ -991,6 +1005,72 @@ $('modBack').onclick = () => {
 $('browseMod').onclick = () => send({cmd: 'browseMod'});
 $('downloadMod').onclick = () => send({cmd: 'downloadMod'});
 $('modPreview').onclick = () => send({cmd: 'modPreview'});
+
+let thunderstoreRequested = false;
+const thunderstoreDownloads = new Map();
+
+function loadThunderstore() {
+  if (!host || $('thunderstoreRefresh').disabled) return;
+  thunderstoreRequested = true;
+  $('thunderstoreRefresh').disabled = true;
+  $('thunderstoreStatus').textContent = 'Loading Thunderstore catalog…';
+  send({cmd: 'thunderstoreList'});
+}
+
+function renderThunderstore(message) {
+  const status = $('thunderstoreStatus');
+  if (message.type === 'thunderstoreAction') {
+    const button = thunderstoreDownloads.get(message.id);
+    if (button) button.disabled = false;
+    thunderstoreDownloads.delete(message.id);
+    status.textContent = message.error ? 'Could not open Thunderstore. Try again.' : '';
+    return;
+  }
+
+  $('thunderstoreRefresh').disabled = false;
+  if (message.error) {
+    thunderstoreRequested = false;
+    status.textContent = 'Could not load the Thunderstore catalog. Try again.';
+    return;
+  }
+  status.textContent = message.packages.length ? '' : 'No mods have been published on Thunderstore yet.';
+  const list = document.createDocumentFragment();
+  for (const mod of message.packages) {
+    const row = document.createElement('article');
+    row.className = 'thunderstore-package';
+    const title = document.createElement('strong');
+    title.textContent = mod.name + ' · ' + mod.author;
+    const description = document.createElement('p');
+    description.textContent = mod.description || '';
+    const actions = document.createElement('div');
+    actions.className = 'thunderstore-actions';
+    const page = document.createElement('button');
+    page.type = 'button';
+    page.className = 'btn';
+    page.textContent = 'View package';
+    page.onclick = () => send({cmd: 'thunderstorePage', id: mod.id});
+    const download = document.createElement('button');
+    download.type = 'button';
+    download.className = 'btn';
+    download.textContent = 'Download ZIP';
+    download.disabled = thunderstoreDownloads.has(mod.id);
+    if (download.disabled) thunderstoreDownloads.set(mod.id, download);
+    download.onclick = () => {
+      download.disabled = true;
+      thunderstoreDownloads.set(mod.id, download);
+      status.textContent = '';
+      send({cmd: 'thunderstoreDownload', id: mod.id});
+    };
+    actions.append(page, download);
+    row.append(title, description, actions);
+    list.append(row);
+  }
+  $('thunderstorePackages').replaceChildren(list);
+}
+
+$('thunderstoreRefresh').onclick = loadThunderstore;
+$('thunderstoreCommunity').onclick = () => send({cmd: 'thunderstorePage'});
+$('modsTab').addEventListener('click', () => { if (!thunderstoreRequested) loadThunderstore(); });
 
 function render(s) {
   if (s.modProfiles) {
@@ -1557,7 +1637,7 @@ setInterval(() => {
   }
 }, 3000);
 document.querySelector('[data-p=p-comp]').addEventListener('click', () => { compAt = {table: 0, tournaments: 0}; send({cmd: 'comp', action: 'me'}); });
-if (host) { host.addEventListener('message', e => !e.data ? 0 : e.data.type === 'social' ? renderSocial(e.data) : e.data.type === 'comp' ? renderComp(e.data) : e.data.type === 'saves' ? renderSaves(e.data) : e.data.type === 'key' ? renderKey(e.data) : e.data.type === 'perf' ? renderPerf(e.data) : e.data.type === 'perfHistory' ? renderHistory(e.data) : String(e.data.type).startsWith('update') ? renderUpdate(e.data) : render(e.data)); send({cmd: 'state'}); }
+if (host) { host.addEventListener('message', e => !e.data ? 0 : e.data.type === 'social' ? renderSocial(e.data) : e.data.type === 'comp' ? renderComp(e.data) : e.data.type === 'saves' ? renderSaves(e.data) : e.data.type === 'key' ? renderKey(e.data) : e.data.type === 'perf' ? renderPerf(e.data) : e.data.type === 'perfHistory' ? renderHistory(e.data) : String(e.data.type).startsWith('thunderstore') ? renderThunderstore(e.data) : String(e.data.type).startsWith('update') ? renderUpdate(e.data) : render(e.data)); send({cmd: 'state'}); }
 // Controller (Steam Deck, Xbox pad): D-pad / left stick move the focus to the nearest control on screen, A presses it,
 // B closes a list or dialog (else goes back to Home), LB / RB step through the pages. Only while a pad is connected.
 const PAD = {A: 0, B: 1, LB: 4, RB: 5, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15};

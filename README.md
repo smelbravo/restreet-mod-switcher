@@ -8,13 +8,15 @@ ReStreet Mod Switcher is a Windows launcher fork of [SamuelitoDaVila’s ReStree
 
 ### Install from GitHub Releases
 
-1. Download **ReStreet-Mod-Switcher-Setup.exe** from [v0.1.0 for Windows](https://github.com/smelbravo/restreet-mod-switcher/releases/tag/v0.1.0).
+1. Download **ReStreet-Mod-Switcher-Setup.exe** from [v0.2.0 for Windows](https://github.com/smelbravo/restreet-mod-switcher/releases/tag/v0.2.0).
 2. Run it, select your own FIFA Street (2012) Xbox 360 ISO and choose an empty destination folder. An internet connection is required. Setup downloads ReStreet 2.1.4 from its original release, verifies its SHA-256 checksum, installs the base game from your ISO and adds this fork’s launcher in the same folder.
 3. Open `FifaStreetLauncher.exe` in that folder and test **Vanilla**. Windows x64 and the WebView2 Runtime are required for the Mods interface. Back up `Documents\fifastreet` before installing mods.
 
 To build the installer from source, run `./Installer/BuildSwitcherSetup.ps1 -Output ./dist/ReStreet-Mod-Switcher-Setup.exe` with the .NET 8 SDK on Windows.
 
 ### Install the mods manually
+
+Open **Mods → Thunderstore** to browse the ReStreet community. **View package** opens the author’s page and installation instructions. **Download ZIP** starts the download in your browser. Follow the author’s instructions to install the package.
 
 1. In the new installation, make two independent copies of the clean `Game` folder at `Mods\Classic\Game` and `Mods\2026\Game`. Each copy should directly contain `default.xex` and `data0.big`.
 2. **Classic.** [Download the ZIP](https://sharemods.com/8i7py52glnt4/FIFAStreetClassic.zip.html), extract it and run the patch installer. Use **Browse** and explicitly select `Mods\Classic\Game` before installing. [Author’s post](https://www.patreon.com/biavva/posts/patch-fifa-beta-173393762)
@@ -36,13 +38,15 @@ O ReStreet Mod Switcher é um fork para Windows do [ReStreet de SamuelitoDaVila]
 
 ### Instalar a partir das Releases do GitHub
 
-1. Descarrega **ReStreet-Mod-Switcher-Setup.exe** da [versão v0.1.0 para Windows](https://github.com/smelbravo/restreet-mod-switcher/releases/tag/v0.1.0).
+1. Descarrega **ReStreet-Mod-Switcher-Setup.exe** da [versão v0.2.0 para Windows](https://github.com/smelbravo/restreet-mod-switcher/releases/tag/v0.2.0).
 2. Abre o instalador, seleciona o teu ISO de FIFA Street (2012) para Xbox 360 e indica uma pasta de destino vazia. É necessária ligação à Internet. O instalador descarrega o ReStreet 2.1.4 da publicação original, verifica o SHA-256, instala o jogo a partir do teu ISO e acrescenta o launcher do fork na mesma pasta.
 3. Abre `FifaStreetLauncher.exe` nessa pasta e testa o **Vanilla**. A interface Mods requer Windows x64 e WebView2 Runtime. Faz uma cópia de segurança de `Documentos\fifastreet` antes de instalares os mods.
 
 Para compilar o instalador a partir do código, executa `./Installer/BuildSwitcherSetup.ps1 -Output ./dist/ReStreet-Mod-Switcher-Setup.exe` no Windows com o SDK do .NET 8.
 
 ### Instalar os mods manualmente
+
+Abre **Mods → Thunderstore** para consultar a comunidade ReStreet. **Ver pacote** abre a página e as instruções do autor. **Descarregar ZIP** inicia a transferência no navegador. Segue as instruções do autor para instalar o pacote.
 
 1. Na nova instalação, faz duas cópias independentes da pasta `Game` limpa em `Mods\Classic\Game` e `Mods\2026\Game`. Cada cópia deve conter diretamente `default.xex` e `data0.big`.
 2. **Classic.** [Descarrega o ZIP](https://sharemods.com/8i7py52glnt4/FIFAStreetClassic.zip.html), extrai-o e abre o instalador do patch. Em **Procurar**, indica explicitamente `Mods\Classic\Game` antes de instalar. [Publicação do autor](https://www.patreon.com/biavva/posts/patch-fifa-beta-173393762)

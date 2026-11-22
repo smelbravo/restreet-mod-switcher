@@ -209,6 +209,9 @@ public partial class LauncherForm
             case "shortcut": CreateDesktopShortcut(); break;
             case "state": if (pendingUpdate is { } pu) PostToPage(new { type = "update", version = pu.Version, notes = pu.Notes }); PushPerfHistory(); break;
             case "perfHistory": PushPerfHistory(); return;
+            case "thunderstoreList": _ = LoadThunderstoreAsync(); return;
+            case "thunderstorePage": OpenThunderstorePage(id); return;
+            case "thunderstoreDownload": _ = DownloadThunderstoreAsync(id); return;
             case "downloadMod" when UseMod:
             case "modPreview" when UseMod:
                 string url = (modProfile, cmd) switch
