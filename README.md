@@ -2,6 +2,8 @@
 
 [English](#english) · [Português de Portugal](#português-de-portugal)
 
+[Mod Switcher Discord / Discord do Mod Switcher](https://discord.gg/6S6dftU3ww) · [ReStreet on Thunderstore / ReStreet no Thunderstore](https://thunderstore.io/c/restreet/)
+
 ## English
 
 ReStreet Mod Switcher is a Windows launcher fork of [SamuelitoDaVila’s ReStreet](https://github.com/samuelit0davila/fifa-street-pc-port), the PC port of FIFA Street (2012). It adds a **Mods** tab for switching between **Vanilla**, **FIFA Street Classic** and **FIFA Street 2026**. Each mod runs offline with its own game folder and World Tour saves. Click a card to select its profile and double-click it to open its gallery.
