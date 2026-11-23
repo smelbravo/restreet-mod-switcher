@@ -1,0 +1,53 @@
+name: Discord Thunderstore feed
+
+on:
+  schedule:
+    - cron: "13,43 * * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Check for published versions or send one test message"
+        type: choice
+        options:
+          - check
+          - test
+        default: check
+
+permissions:
+  contents: read
+
+concurrency:
+  group: discord-thunderstore-feed
+  cancel-in-progress: false
+
+jobs:
+  announce:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Restore announced versions
+        id: state
+        uses: actions/cache/restore@v4
+        with:
+          path: .thunderstore-feed-state.json
+          key: restreet-thunderstore-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: restreet-thunderstore-v1-
+
+      - name: Check the ReStreet catalogue
+        id: poll
+        env:
+          FEED_MODE: ${{ inputs.mode || 'check' }}
+          DISCORD_THUNDERSTORE_WEBHOOK: ${{ secrets.DISCORD_THUNDERSTORE_WEBHOOK }}
+        run: python3 .github/scripts/discord_thunderstore.py
+
+      - name: Save announced versions
+        if: ${{ !cancelled() && steps.poll.outputs.state_changed == 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: .thunderstore-feed-state.json
+          key: ${{ steps.state.outputs.cache-primary-key }}
