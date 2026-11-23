@@ -1,49 +1,74 @@
-# Posts every published release to Discord and pings the @Releases role.
+# Posts published Switcher releases to Discord with an optional @Releases ping.
 # Setup (once):
 #   Settings > Secrets and variables > Actions
-#   - Secret   DISCORD_RELEASE_WEBHOOK  = webhook URL of the #github-releases channel
-#   - Variable DISCORD_RELEASES_ROLE_ID = ID of the @Releases role
+#   - Secret   DISCORD_RELEASE_WEBHOOK  = webhook URL of the #downloads channel
+#   - Variable DISCORD_RELEASES_ROLE_ID = ID of the @Releases role (optional)
 name: Discord release announcement
 
 on:
   release:
     types: [published]
+  workflow_dispatch:
+
+permissions: {}
 
 jobs:
   announce:
+    # The Viewer release is a dependency download, not a Switcher update.
+    if: github.event_name == 'workflow_dispatch' || github.event.release.tag_name != 'viewer'
     runs-on: ubuntu-latest
     steps:
       - name: Post release to Discord
+        shell: bash
         env:
           WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
           ROLE_ID: ${{ vars.DISCORD_RELEASES_ROLE_ID }}
-          NAME: ${{ github.event.release.name }}
-          TAG: ${{ github.event.release.tag_name }}
-          URL: ${{ github.event.release.html_url }}
-          BODY: ${{ github.event.release.body }}
         run: |
           if [ -z "$WEBHOOK" ]; then
+            if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+              echo "::error::Set the DISCORD_RELEASE_WEBHOOK repository secret before running this test."
+              exit 1
+            fi
             echo "::warning::DISCORD_RELEASE_WEBHOOK secret is not set, no Discord post"
             exit 0
           fi
-          MENTION=""
-          if [ -n "$ROLE_ID" ]; then MENTION="<@&$ROLE_ID> New update is out!"; fi
-          DESC=$(printf '%s' "$BODY" | head -c 3500)
-          jq -n \
-            --arg content "$MENTION" \
-            --arg role "$ROLE_ID" \
-            --arg title "${NAME:-$TAG}" \
-            --arg url "$URL" \
-            --arg desc "$DESC" \
-            --arg tag "$TAG" \
-            '{
-              content: $content,
-              allowed_mentions: { roles: (if $role == "" then [] else [$role] end) },
-              embeds: [{
-                title: $title,
-                url: $url,
-                description: ($desc + "\n\n**Download:** " + $url),
-                color: 15844367,
-                footer: { text: $tag }
+
+          python3 - <<'PY' | curl --fail --silent --show-error --max-time 30 \
+            --output /dev/null --header 'Content-Type: application/json' \
+            --data-binary @- "${WEBHOOK}?wait=true"
+          import json
+          import os
+
+          def fit(text, limit):
+              # Count UTF-16 units and preserve whole characters at the cutoff.
+              encoded = text.encode("utf-16-le")
+              if len(encoded) <= limit * 2:
+                  return text
+              return encoded[:(limit - 1) * 2].decode("utf-16-le", errors="ignore") + "…"
+
+          payload = {"allowed_mentions": {"parse": []}}
+          if os.environ["GITHUB_EVENT_NAME"] == "workflow_dispatch":
+              payload["content"] = "ReStreet Mod Switcher · Teste de integração / Integration test."
+          else:
+              with open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8") as event_file:
+                  release = json.load(event_file)["release"]
+
+              tag = release["tag_name"]
+              url = release["html_url"]
+              download = f"**Descarregar / Download:** {url}"
+              body = fit(release["body"] or "", min(3500, 4096 - 2 - len(download)))
+              payload["embeds"] = [{
+                  "author": {"name": "Nova versão / New release"},
+                  "title": fit(release["name"] or tag, 256),
+                  "url": url,
+                  "description": f"{body}\n\n{download}" if body else download,
+                  "color": 15844367,
+                  "footer": {"text": fit(tag, 256)},
               }]
-            }' | curl -fsS -H "Content-Type: application/json" -d @- "$WEBHOOK"
+              role = os.environ["ROLE_ID"]
+              if role:
+                  payload["content"] = f"<@&{role}>"
+                  payload["allowed_mentions"] = {"roles": [role]}
+
+          print(json.dumps(payload))
+          PY
