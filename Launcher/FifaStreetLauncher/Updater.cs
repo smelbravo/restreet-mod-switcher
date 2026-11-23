@@ -4,14 +4,14 @@ using System.Text.Json;
 
 namespace FifaStreetLauncher;
 
-// Automatic updates: at start the launcher asks GitHub for the latest ReStreet release. When it is newer than this
-// launcher and has a patch (.exe plus .exe.sha256), the page offers it. "Update" downloads both files from GitHub only,
-// checks the SHA-256, starts the patch with --auto-update (it waits for the launcher to close, installs with the saved
-// name, key and server, and reopens the launcher) and closes the launcher. Only installs that have the online patch.
+// The switcher checks its own releases and asks before applying a verified installer in place.
 public partial class LauncherForm
 {
-    internal const string LauncherVersion = "2.1.4";
-    private const string ReleasesApi = "https://api.github.com/repos/smelbravo/restreet-mod-switcher/releases/latest";
+    internal const string LauncherVersion = "2.1.5";
+    private static readonly string SwitcherVersion = typeof(LauncherForm).Assembly.GetName().Version!.ToString(3);
+    private const string ReleasesApi = "https://api.github.com/repos/smelbravo/restreet-mod-switcher/releases";
+    private const string ReleaseDownloads = "https://github.com/smelbravo/restreet-mod-switcher/releases/download/";
+    private const string InstallerName = "ReStreet-Mod-Switcher-Setup.exe";
     private static readonly HttpClient UpdateHttp = CreateUpdateHttp();
     private (string Version, string ExeUrl, string ShaUrl, string Notes)? pendingUpdate;
     private bool updating;
@@ -22,17 +22,6 @@ public partial class LauncherForm
         http.DefaultRequestHeaders.UserAgent.ParseAdd("ReStreetLauncher/" + LauncherVersion);
         return http;
     }
-
-    // "v1.5.1-online-beta" -> 1.5.1; anything unparsable compares as 0.
-    internal static Version ParseVersion(string tag)
-    {
-        var digits = new string(tag.TrimStart('v', 'V').TakeWhile(c => char.IsDigit(c) || c == '.').ToArray()).Trim('.');
-        return Version.TryParse(digits.Contains('.') ? digits : digits + ".0", out var v) ? v : new Version(0, 0);
-    }
-
-    private static bool FromGitHub(string url) =>
-        Uri.TryCreate(url, UriKind.Absolute, out var u) && u.Scheme == "https" &&
-        (u.Host == "github.com" || u.Host.EndsWith(".githubusercontent.com", StringComparison.Ordinal));
 
     private System.Windows.Forms.Timer? updateTimer;
 
@@ -48,7 +37,8 @@ public partial class LauncherForm
 
     private async Task CheckForUpdateAsync()
     {
-        if (!await FindUpdateAsync()) return;
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        if (!await FindUpdateAsync(timeout.Token)) return;
         // The page may still be loading (it asks again with "state"); give it a moment to say whether it is up.
         await Task.Delay(4000);
         await OfferUpdateAsync();
@@ -57,33 +47,47 @@ public partial class LauncherForm
     // Sets pendingUpdate when GitHub has a newer release with a patch; true when it did.
     private async Task<bool> FindUpdateAsync(CancellationToken cancel = default)
     {
-        if (LoadOnlineConfig() == null) return false;  // offline installs update with the full installer
-        // RESTREET_NO_UPDATE=1: never offer an update (a self-built launcher would be replaced by the official one).
         if (Environment.GetEnvironmentVariable("RESTREET_NO_UPDATE") == "1") return false;
         try
         {
             using var doc = JsonDocument.Parse(await UpdateHttp.GetStringAsync(ReleasesApi, cancel));
-            var r = doc.RootElement;
-            string tag = r.GetProperty("tag_name").GetString() ?? "";
-            if (ParseVersion(tag) <= ParseVersion(LauncherVersion)) return false;
-            string? exe = null, sha = null;
-            foreach (var a in r.GetProperty("assets").EnumerateArray())
-            {
-                string name = a.GetProperty("name").GetString() ?? "", url = a.GetProperty("browser_download_url").GetString() ?? "";
-                if (!FromGitHub(url)) continue;
-                if (name.EndsWith(".exe.sha256", StringComparison.OrdinalIgnoreCase)) sha = url;
-                else if (name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) exe = url;
-            }
-            if (exe == null || sha == null) return false;
-            string notes = r.TryGetProperty("name", out var n) ? n.GetString() ?? tag : tag;
-            pendingUpdate = (ParseVersion(tag).ToString(), exe, sha, notes);
-            return true;
+            pendingUpdate = FindSwitcherRelease(doc.RootElement, Version.Parse(SwitcherVersion));
+            return pendingUpdate.HasValue;
         }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException or JsonException or KeyNotFoundException or InvalidOperationException)
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException or KeyNotFoundException or InvalidOperationException)
         {
-            // No network or GitHub unavailable: try again later.
             return false;
         }
+    }
+
+    internal static (string Version, string ExeUrl, string ShaUrl, string Notes)? FindSwitcherRelease(JsonElement releases, Version installed)
+    {
+        (string Version, string ExeUrl, string ShaUrl, string Notes)? update = null;
+        Version newest = installed;
+        foreach (var release in releases.EnumerateArray())
+        {
+            if (release.GetProperty("draft").GetBoolean()) continue;
+            string? tag = release.GetProperty("tag_name").GetString();
+            if (tag == null || !tag.StartsWith('v') || !Version.TryParse(tag[1..], out var version) ||
+                version.Build < 0 || version.Revision >= 0 || tag != "v" + version || version <= newest)
+                continue;
+
+            string exe = ReleaseDownloads + tag + "/" + InstallerName;
+            string sha = exe + ".sha256";
+            bool hasExe = false, hasSha = false;
+            foreach (var asset in release.GetProperty("assets").EnumerateArray())
+            {
+                if (asset.GetProperty("state").GetString() != "uploaded") continue;
+                string? name = asset.GetProperty("name").GetString();
+                string? url = asset.GetProperty("browser_download_url").GetString();
+                hasExe |= name == InstallerName && url == exe;
+                hasSha |= name == InstallerName + ".sha256" && url == sha;
+            }
+            if (!hasExe || !hasSha) continue;
+            newest = version;
+            update = (version.ToString(), exe, sha, release.GetProperty("name").GetString() ?? tag);
+        }
+        return update;
     }
 
     private async Task OfferUpdateAsync()
@@ -96,7 +100,7 @@ public partial class LauncherForm
         else
         {
             // Classic interface (no WebView2, for example on Wine/Proton): ask with a plain dialog.
-            var answer = MessageBox.Show(this, "ReStreet " + u.Version + " is available.\n\nThe launcher downloads it from GitHub, " +
+            var answer = MessageBox.Show(this, "ReStreet Mod Switcher " + u.Version + " is available.\n\nThe launcher downloads it from GitHub, " +
                 "checks it and installs it for you. Your name, server and saves are kept.\n\nUpdate now?", "ReStreet update",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Information);
             if (answer == DialogResult.Yes)
@@ -109,15 +113,19 @@ public partial class LauncherForm
 
     private async Task InstallUpdateAsync()
     {
-        if (pendingUpdate is not { } u || updating || gameRunning) return;
+        if (pendingUpdate is not { } u || updating) return;
+        if (launchingGame || gameRunning || AnyGameRunning())
+        {
+            ReportUpdateError("Close the game before updating ReStreet Mod Switcher.");
+            return;
+        }
         updating = true;
-        string folder = Path.Combine(Path.GetTempPath(), "ReStreet-update");
-        string exePath = Path.Combine(folder, "ReStreet-Update-" + u.Version + ".exe");
+        string exePath = Path.Combine(Path.GetTempPath(), $"ReStreet-Mod-Switcher-{u.Version}-{Guid.NewGuid():N}.exe");
         try
         {
-            Directory.CreateDirectory(folder);
-            string expected = (await UpdateHttp.GetStringAsync(u.ShaUrl)).Trim().Split(' ', '\t')[0].ToLowerInvariant();
-            if (expected.Length != 64) throw new InvalidDataException("bad checksum file");
+            string expected = (await UpdateHttp.GetStringAsync(u.ShaUrl)).Trim().Split(' ', '\t')[0];
+            if (expected.Length != 64 || !expected.All(Uri.IsHexDigit))
+                throw new InvalidDataException("bad checksum file");
             using (var response = await UpdateHttp.GetAsync(u.ExeUrl, HttpCompletionOption.ResponseHeadersRead))
             {
                 response.EnsureSuccessStatusCode();
@@ -136,23 +144,32 @@ public partial class LauncherForm
             }
             string actual;
             await using (var check = File.OpenRead(exePath)) actual = Convert.ToHexString(await SHA256.HashDataAsync(check)).ToLowerInvariant();
-            if (actual != expected) throw new InvalidDataException("the download is damaged (checksum mismatch)");
+            if (!actual.Equals(expected, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException("the download is damaged (checksum mismatch)");
 
-            string root = AppContext.BaseDirectory.TrimEnd('\\');
-            Process.Start(new ProcessStartInfo(exePath)
+            if (launchingGame || gameRunning || AnyGameRunning())
+                throw new InvalidOperationException("Close the game before updating ReStreet Mod Switcher.");
+
+            string root = Path.TrimEndingDirectorySeparator(AppContext.BaseDirectory);
+            using var installer = Process.Start(new ProcessStartInfo(exePath)
             {
                 ArgumentList = { "--auto-update", root, Environment.ProcessId.ToString() },
                 UseShellExecute = false,
-            });
+            }) ?? throw new InvalidOperationException("the installer could not be started");
             Close();
         }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or IOException or UnauthorizedAccessException or InvalidDataException or System.ComponentModel.Win32Exception)
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or IOException or UnauthorizedAccessException or InvalidDataException or InvalidOperationException or System.ComponentModel.Win32Exception)
         {
             updating = false;
-            try { File.Delete(exePath); } catch (IOException) { }
-            PostToPage(new { type = "updateError", message = "Update failed: " + ex.Message });
-            if (!PageConnected) UpdateStatus("Update failed: " + ex.Message, false);
+            try { File.Delete(exePath); } catch (Exception cleanup) when (cleanup is IOException or UnauthorizedAccessException) { }
+            ReportUpdateError("Update failed: " + ex.Message);
         }
+    }
+
+    private void ReportUpdateError(string message)
+    {
+        PostToPage(new { type = "updateError", message });
+        if (!PageConnected) UpdateStatus(message, false);
     }
 
     private void PostToPage(object message)

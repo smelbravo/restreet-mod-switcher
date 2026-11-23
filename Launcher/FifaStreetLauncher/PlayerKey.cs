@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 
 namespace FifaStreetLauncher;
 
@@ -15,8 +16,11 @@ internal static class PlayerKey
 {
     private const int MinKey = 16;       // the server binds no shorter key (friends.py MIN_KEY)
     private const string CodePrefix = "RS1-";
+    // Same nickname rules as the official installer.
+    private static readonly Regex NewName = new(@"\A[A-Za-z0-9][A-Za-z0-9 _-]{1,13}[A-Za-z0-9_-]\z");
 
     internal sealed record Result(bool Ok, string Note);
+    private sealed record ConfigChange(string Path, string? Before, string After);
 
     // RESTREET_KEY_BACKUP points the copy elsewhere, for tests.
     internal static string BackupPath() =>
@@ -50,6 +54,62 @@ internal static class PlayerKey
     {
         var (name, key) = Read(onlineFiles);
         return name.Length == 0 || key.Length < MinKey ? "" : CodePrefix + Base64Url(Encoding.UTF8.GetBytes(name + "\n" + key));
+    }
+
+    // Names are account identifiers on the server. Keep each name's key so the player can switch back.
+    internal static Result SwitchName(IReadOnlyList<string> onlineFiles, string? requested)
+    {
+        var (current, currentKey) = Read(onlineFiles);
+        if (current.Length == 0) return new(false, "Online is not set up. Run the online patch again.");
+        string name = (requested ?? "").Trim();
+        if (name == current) return new(true, "This PC already uses this name.");
+
+        var backup = LoadBackup();
+        string currentId = Id(current);
+        string nameId = Id(name);
+        var entry = backup[nameId] as JsonObject;
+        string savedKey = ReadKey(entry);
+        if (!NewName.IsMatch(name) && !(ValidName(name) && savedKey.Length >= MinKey))
+            return new(false, "Use 3 to 15 letters, numbers, spaces, hyphens or underscores. Start with a letter or number.");
+
+        if (currentKey.Length >= MinKey)
+        {
+            var old = backup[currentId] as JsonObject ?? new JsonObject();
+            if (ReadKey(old) is { Length: >= MinKey } oldKey && oldKey != currentKey)
+                Remember(old, oldKey);
+            old["name"] = current;
+            old["key"] = currentKey;
+            backup[currentId] = old;
+        }
+
+        string key = ActivateName(backup, name);
+        if (!SaveBackup(backup)) return new(false, "Could not back up your online key. Your online name was kept.");
+        if (!WriteNameCopies(onlineFiles, name, key)) return new(false, "Could not write online.json. Close the game and try again.");
+
+        return new(true, "Online name saved on this PC.");
+    }
+
+    // Configure an unconfigured install without replacing a possibly recoverable identity.
+    internal static Result ConfigureOnline(IReadOnlyList<string> onlineFiles, string? requested, string server)
+    {
+        if (onlineFiles.Any(File.Exists))
+            return new(false, "Existing online settings could not be read. Restore your online.json before setting up a new name.");
+
+        string name = (requested ?? "").Trim();
+        var backup = LoadBackup();
+        if (!NewName.IsMatch(name) && !(ValidName(name) && ReadKey(backup[Id(name)] as JsonObject).Length >= MinKey))
+            return new(false, "Use 3 to 15 letters, numbers, spaces, hyphens or underscores. Start with a letter or number.");
+
+        string key = ActivateName(backup, name);
+        if (!SaveBackup(backup)) return new(false, "Could not back up your online key. Check that you can write to your profile folder.");
+
+        string json = new JsonObject { ["name"] = name, ["key"] = key, ["server"] = server }
+            .ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+        // The launcher copy is written last so it only detects a completed setup.
+        var changes = onlineFiles.Distinct(StringComparer.OrdinalIgnoreCase).Reverse().Select(path => new ConfigChange(path, null, json));
+        if (!ApplyConfigChanges(changes))
+            return new(false, "Could not write online.json. Close the game and try again.");
+        return new(true, "Online name saved on this PC.");
     }
 
     // A code from another PC: its name and key go into online.json (and the backup) here.
@@ -92,8 +152,25 @@ internal static class PlayerKey
         }
         catch (FormatException) { return false; }
         // The server's rules for a name (friends.py valid_name) and a key.
-        return name.Length is >= 1 and <= 32 && !name.Any(c => c < 0x20 || c == 0x7f || "\\\"{}[]".Contains(c))
-            && key.Length is >= MinKey and <= 128;
+        return ValidName(name) && key.Length is >= MinKey and <= 128;
+    }
+
+    private static bool ValidName(string name) =>
+        name.Length is >= 1 and <= 32 && !name.Any(c => c < 0x20 || c == 0x7f || "\\\"{}[]".Contains(c));
+
+    private static string ReadKey(JsonObject? entry) =>
+        entry?["key"] is JsonValue value && value.TryGetValue<string>(out var key) ? key : "";
+
+    private static string ActivateName(JsonObject backup, string name)
+    {
+        string id = Id(name);
+        var entry = backup[id] as JsonObject ?? new JsonObject();
+        string key = ReadKey(entry) is { Length: >= MinKey } existing ? existing : NewKey();
+        entry["name"] = name;
+        entry["key"] = key;
+        entry["saved"] = DateTime.UtcNow.ToString("s");
+        backup[id] = entry;
+        return key;
     }
 
     private static (string Name, string Key) Read(IReadOnlyList<string> onlineFiles)
@@ -107,6 +184,58 @@ internal static class PlayerKey
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or InvalidOperationException)
         {
             return ("", "");
+        }
+    }
+
+    private static bool WriteNameCopies(IReadOnlyList<string> onlineFiles, string name, string key)
+    {
+        var changes = new List<ConfigChange>();
+        try
+        {
+            foreach (string path in onlineFiles.Distinct(StringComparer.OrdinalIgnoreCase).Reverse())
+            {
+                if (!File.Exists(path)) continue;
+                string before = File.ReadAllText(path);
+                if (JsonNode.Parse(before) is not JsonObject config) return false;
+                config["name"] = name;
+                config["key"] = key;
+                changes.Add(new(path, before, config.ToJsonString(new JsonSerializerOptions { WriteIndented = true })));
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+        {
+            return false;
+        }
+        return ApplyConfigChanges(changes);
+    }
+
+    private static bool ApplyConfigChanges(IEnumerable<ConfigChange> changes)
+    {
+        var applied = new List<ConfigChange>();
+        try
+        {
+            foreach (var change in changes)
+            {
+                if (change.Before != null && File.ReadAllText(change.Path) != change.Before)
+                    throw new IOException("Online settings changed during setup.");
+                WriteAtomic(change.Path, change.After, overwrite: change.Before != null);
+                applied.Add(change);
+            }
+            return applied.Count > 0;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            foreach (var change in applied.AsEnumerable().Reverse())
+            {
+                try
+                {
+                    if (File.ReadAllText(change.Path) != change.After) continue;
+                    if (change.Before == null) File.Delete(change.Path);
+                    else WriteAtomic(change.Path, change.Before);
+                }
+                catch (Exception rollback) when (rollback is IOException or UnauthorizedAccessException) { }
+            }
+            return false;
         }
     }
 
@@ -162,22 +291,31 @@ internal static class PlayerKey
         }
     }
 
-    private static void SaveBackup(JsonObject backup)
+    private static bool SaveBackup(JsonObject backup)
     {
         try
         {
             string path = BackupPath();
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             WriteAtomic(path, backup.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+            return true;
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { /* the next start tries again */ }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { return false; }
     }
 
-    private static void WriteAtomic(string path, string text)
+    private static void WriteAtomic(string path, string text, bool overwrite = true)
     {
-        string tmp = path + ".tmp";
-        File.WriteAllText(tmp, text);
-        File.Move(tmp, path, true);
+        string tmp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            File.WriteAllText(tmp, text);
+            File.Move(tmp, path, overwrite);
+        }
+        finally
+        {
+            try { File.Delete(tmp); }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+        }
     }
 
     private static string Id(string name) => name.Trim().ToLowerInvariant();

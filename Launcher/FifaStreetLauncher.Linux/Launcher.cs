@@ -426,6 +426,7 @@ internal sealed partial class Launcher : IPageHost
             case "folder": Open(root); break;
             case "shortcut": CreateDesktopEntry(); break;
             case "donate": OpenUrl("https://ko-fi.com/samuelitodavila"); break;
+            case "donateSwitcher": OpenUrl("https://buymeacoffee.com/smel_111"); break;
             case "perfShare": if (m.TryGetProperty("value", out var ps) && ps.ValueKind is JsonValueKind.True or JsonValueKind.False) { perfShare = ps.GetBoolean(); SaveSettings(); } return;
             case "controls": if (m.TryGetProperty("value", out var cv) && cv.ValueKind == JsonValueKind.Object) SetControls(cv); break;
             case "server": if (m.TryGetProperty("address", out var a)) SwitchServer(a.GetString() ?? ""); break;

@@ -153,6 +153,7 @@ public partial class LauncherForm : Form, ISceneHost, IUiScaled
         UpdateRefreshRates();
         UpdateSummary();
         UpdateStatus(ReadyText(), true);
+        if (LoadOnlineConfig()?.Server == OldEuropeServer) SwitchServer(EuropeServer);
         scaler.Capture();
         // Stay invisible until the new page has loaded, so the classic controls underneath never flash on screen.
         if (Environment.GetEnvironmentVariable("RESTREET_CLASSIC_UI") != "1") Opacity = 0;
@@ -260,7 +261,7 @@ public partial class LauncherForm : Form, ISceneHost, IUiScaled
     {
         var online = LoadOnlineConfig();
         if (online != null && !onlineModeBox.Checked) return "Ready to play offline (online is off)";
-        return online == null ? "Online is not set up. Run the online patch again" : "Ready to play online as " + online.Value.Name;
+        return online == null ? "Online is not set up" : "Ready to play online as " + online.Value.Name;
     }
 
     private void BuildInterface()
@@ -1410,7 +1411,7 @@ startInfo.Environment["REX_DRAW_RESOLUTION_SCALE_Y"] =
                 ["readback"] = deck ? "deck" : readbackResolve,
             };
 
-            // Online play: the server and the player name come from the online patch.
+            // Only Vanilla can use the official online servers.
             var online = LoadOnlineConfig();
             if (!modded && online != null && onlineModeBox.Checked)
             {
@@ -1421,6 +1422,15 @@ startInfo.Environment["REX_DRAW_RESOLUTION_SCALE_Y"] =
                 startInfo.Environment["FIFASTREET_ONLINE_ENDPOINT_PROBE"] = "1";
                 startInfo.Environment["FIFASTREET_NET_DIAG"] = "";
                 if (!logFrameStatsBox.Checked) startInfo.Environment["REX_LOG_LEVEL"] = "warn";
+            }
+            else
+            {
+                // An offline or modded session must not inherit the online environment from its parent.
+                startInfo.Environment.Remove("FIFASTREET_SERVER");
+                startInfo.Environment.Remove("FIFASTREET_PLAYER_NAME");
+                startInfo.Environment.Remove("FIFASTREET_PLAYER_KEY");
+                startInfo.Environment.Remove("FIFASTREET_ONLINE_EXPERIMENT");
+                startInfo.Environment.Remove("FIFASTREET_ONLINE_ENDPOINT_PROBE");
             }
 
             // Mantemos game_data_root também como argumento porque esta
@@ -1475,7 +1485,7 @@ startInfo.Environment["REX_DRAW_RESOLUTION_SCALE_Y"] =
             UpdateStatus("Starting ReStreet...", true);
 
             if (!deck) ApplyMonitorRefresh(monitor, refresh, fullscreen ? width : 0, fullscreen ? height : 0);
-            EnsureStadiumThumbs(Path.GetDirectoryName(exe)!, gameRoot);
+            EnsureStadiumThumbs(Path.GetDirectoryName(exe)!, vanillaRoot);
             ApplyPortugueseLocale(gameRoot, ref temporaryLocale);
             var started = DateTime.UtcNow;
             using var process = Process.Start(startInfo);
@@ -1848,6 +1858,7 @@ startInfo.Environment["REX_DRAW_RESOLUTION_SCALE_Y"] =
                 Profile = profileBox.SelectedIndex,
                 ClassicGamePath = classicGamePath,
                 Street2026GamePath = street2026GamePath,
+                ThunderstoreProfiles = communityProfiles.Values.ToArray(),
                 ModProfile = modProfile,
                 OnlineMode = onlineModeBox.Checked
             };
@@ -1860,7 +1871,17 @@ startInfo.Environment["REX_DRAW_RESOLUTION_SCALE_Y"] =
                 }
             );
 
-            File.WriteAllText(SettingsPath, json);
+            string pendingPath = SettingsPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try
+            {
+                File.WriteAllText(pendingPath, json);
+                File.Move(pendingPath, SettingsPath, overwrite: true);
+            }
+            finally
+            {
+                try { File.Delete(pendingPath); }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { Debug.WriteLine(ex.Message); }
+            }
         }
         catch (Exception ex)
         {
@@ -1873,7 +1894,10 @@ startInfo.Environment["REX_DRAW_RESOLUTION_SCALE_Y"] =
         try
         {
             if (!File.Exists(SettingsPath))
+            {
+                LoadModProfiles(new LauncherSettings());
                 return;
+            }
 
             var settings =
                 JsonSerializer.Deserialize<LauncherSettings>(
@@ -1882,15 +1906,6 @@ startInfo.Environment["REX_DRAW_RESOLUTION_SCALE_Y"] =
 
             if (settings == null)
                 return;
-            classicGamePath = settings.ClassicGamePath ?? "";
-            street2026GamePath = settings.Street2026GamePath ?? "";
-            modProfile = settings.ModProfile switch
-            {
-                "classic" => "classic",
-                "street2026" => "street2026",
-                null when settings.ClassicSelected => "classic",
-                _ => "vanilla"
-            };
             onlineModeBox.Checked = settings.OnlineMode;
             int languageIndex = Array.IndexOf(GameLanguageIds, settings.GameLanguage);
             gameLanguageBox.SelectedIndex = Math.Max(0, languageIndex);
@@ -1898,6 +1913,7 @@ startInfo.Environment["REX_DRAW_RESOLUTION_SCALE_Y"] =
             // A saved path that no longer exists (the folders moved to the 1.5.5 layout) gives way to the default.
             if (settings.ExePath != null && File.Exists(settings.ExePath)) exePathBox.Text = settings.ExePath;
             if (settings.GamePath != null && Directory.Exists(settings.GamePath)) gamePathBox.Text = settings.GamePath;
+            LoadModProfiles(settings);
 
             displayModeBox.SelectedIndex =
                 settings.Fullscreen ? 0 : 1;
@@ -2063,6 +2079,7 @@ public class LauncherSettings
     public int Profile { get; set; } = 0;
     public string? ClassicGamePath { get; set; }
     public string? Street2026GamePath { get; set; }
+    public ThunderstoreModProfile[]? ThunderstoreProfiles { get; set; }
     public string? ModProfile { get; set; }
     public bool ClassicSelected { get; set; }
     public bool OnlineMode { get; set; } = true;

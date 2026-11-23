@@ -14,10 +14,13 @@ namespace FifaStreetLauncher;
 // interface simply stays visible.
 public partial class LauncherForm
 {
-    // Regions the online patch offers (keep in sync with build_online_patch.py --region).
+    private const string OldEuropeServer = "57.129.180.15";
+    private const string EuropeServer = "restreet-pt.duckdns.org";
+
+    // Regions offered by the original ReStreet online setup.
     private static readonly (string Name, string Address)[] Regions =
     {
-        ("Europe", "57.129.180.15"), ("South America", "216.238.113.7"),
+        ("Europe", EuropeServer), ("South America", "216.238.113.7"),
     };
 
     private WebView2? glass;
@@ -204,16 +207,36 @@ public partial class LauncherForm
             case "browseData": BrowseGame(); break;
             case "logs": OpenLogs(); break;
             case "folder": OpenGameFolder(); break;
-            // The page cannot navigate away; the Donate button opens the fixed Ko-fi page in the default browser.
+            // Open the fixed donation pages in the default browser.
             case "donate": Process.Start(new ProcessStartInfo("https://ko-fi.com/samuelitodavila") { UseShellExecute = true })?.Dispose(); return;
+            case "donateSwitcher": Process.Start(new ProcessStartInfo("https://buymeacoffee.com/smel_111") { UseShellExecute = true })?.Dispose(); return;
             case "shortcut": CreateDesktopShortcut(); break;
             case "state": if (pendingUpdate is { } pu) PostToPage(new { type = "update", version = pu.Version, notes = pu.Notes }); PushPerfHistory(); break;
             case "perfHistory": PushPerfHistory(); return;
             case "thunderstoreList": _ = LoadThunderstoreAsync(); return;
+            case "modTeams": _ = LoadModTeamsAsync(id); return;
+            case "teamRoster":
+                if (m.TryGetProperty("team", out var rosterTeam) && rosterTeam.ValueKind == JsonValueKind.Number &&
+                    rosterTeam.TryGetInt32(out int rosterTeamId) && rosterTeamId >= 0)
+                    _ = LoadTeamRosterAsync(id, rosterTeamId,
+                        m.TryGetProperty("official", out var official) && official.ValueKind == JsonValueKind.True);
+                return;
+            case "modTeamCrests":
+                if (m.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array &&
+                    assets.GetArrayLength() <= 24)
+                {
+                    var ids = assets.EnumerateArray()
+                        .Where(value => value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out _))
+                        .Select(value => value.GetInt32()).Distinct().ToArray();
+                    _ = LoadModTeamCrestsAsync(id, ids);
+                }
+                return;
+            case "closeModTeams": CloseModTeams(); return;
             case "thunderstorePage": OpenThunderstorePage(id); return;
             case "thunderstoreDownload": _ = DownloadThunderstoreAsync(id); return;
-            case "downloadMod" when UseMod:
-            case "modPreview" when UseMod:
+            case "registerThunderstoreProfile": RegisterThunderstoreProfile(id); break;
+            case "downloadMod" when UseMod && IsBuiltInMod:
+            case "modPreview" when UseMod && IsBuiltInMod:
                 string url = (modProfile, cmd) switch
                 {
                     ("street2026", "downloadMod") => "https://drive.google.com/file/d/1XKbAZtVdSmj5AMh3z9BkJjzxTupsrrLO/view",
@@ -225,14 +248,8 @@ public partial class LauncherForm
                 return;
             case "browseMod": BrowseModGame(); break;
             case "selectModProfile":
-                if (!launchingGame && !AnyGameRunning() &&
-                    m.TryGetProperty("value", out var profileValue) &&
-                    profileValue.ValueKind == JsonValueKind.String &&
-                    profileValue.GetString() is "vanilla" or "classic" or "street2026")
-                {
-                    modProfile = profileValue.GetString()!;
-                    SaveModSettings();
-                }
+                if (m.TryGetProperty("value", out var profileValue) && profileValue.ValueKind == JsonValueKind.String)
+                    SelectModProfile(profileValue.GetString());
                 break;
             case "saves": PushSaves(); return;
             case "savesRestore": RestoreSaveFromPage(m.TryGetProperty("id", out var sid) ? sid.GetString() : null); return;
@@ -254,6 +271,19 @@ public partial class LauncherForm
             case "server":
                 if (m.TryGetProperty("address", out var a)) SwitchServer(a.GetString() ?? "");
                 break;
+            case "onlineName":
+            {
+                string? name = m.TryGetProperty("value", out var nv) && nv.ValueKind == JsonValueKind.String ? nv.GetString() : null;
+                string? address = m.TryGetProperty("address", out var av) && av.ValueKind == JsonValueKind.String ? av.GetString() : null;
+                var result = ChangeOnlineName(name, address);
+                if (result.Ok)
+                {
+                    lastBackgroundSocial = DateTime.MinValue;
+                    UpdateStatus(ReadyText(), true);
+                }
+                PostToPage(new { type = "onlineName", ok = result.Ok, note = result.Note });
+                break;
+            }
             // Advanced > Online key (PlayerKey.cs): the recovery code, and a code from another PC.
             case "keyCode": PostToPage(new { type = "key", code = PlayerKey.RecoveryCode(OnlineFiles()) }); return;
             case "keyUse":
@@ -290,6 +320,16 @@ public partial class LauncherForm
         return new[] { Path.Combine(AppContext.BaseDirectory, "online.json"), Path.Combine(exeFolder, "online.json") };
     }
 
+    private PlayerKey.Result ChangeOnlineName(string? name, string? address)
+    {
+        if (launchingGame || gameRunning || AnyGameRunning()) return new(false, "Close the game first.");
+        if (inRoom) return new(false, "Leave your match room first.");
+        if (LoadOnlineConfig() != null) return PlayerKey.SwitchName(OnlineFiles(), name);
+        if (!File.Exists(exePathBox.Text.Trim())) return new(false, "Select your ReStreet executable first.");
+        if (address == null || !Regions.Any(r => r.Address == address)) return new(false, "Choose an official ReStreet server.");
+        return PlayerKey.ConfigureOnline(OnlineFiles(), name, address);
+    }
+
     // Moves this install to another region: the same name and key, another server (online.json in both places).
     private void SwitchServer(string address)
     {
@@ -322,8 +362,10 @@ public partial class LauncherForm
                 int ping = -1, online = -1;
                 try
                 {
+                    using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+                    var ips = await System.Net.Dns.GetHostAddressesAsync(address, timeout.Token);
                     var watch = Stopwatch.StartNew();
-                    using (var tcp = new TcpClient()) { await tcp.ConnectAsync(address, 29812).WaitAsync(TimeSpan.FromSeconds(3)); }
+                    using (var tcp = new TcpClient()) { await tcp.ConnectAsync(ips, 29812, timeout.Token); }
                     ping = (int)watch.ElapsedMilliseconds;
                     using var doc = JsonDocument.Parse(await http.GetStringAsync($"http://{address}:29812/v1/online"));
                     online = doc.RootElement.GetProperty("online").GetInt32();
@@ -347,33 +389,39 @@ public partial class LauncherForm
         var toggles = GlassToggles().ToDictionary(t => t.Key, t => (object)new { on = t.Value.Checked, enabled = t.Value.Enabled });
         toggles["perfShare"] = new { on = perfShareCached, enabled = true };
         var online = LoadOnlineConfig();
-        object? onlineState = null;
-        if (online != null)
+        Dictionary<string, (int Ping, int Online)> info;
+        lock (serverInfo) info = new(serverInfo);
+        var onlineState = new
         {
-            Dictionary<string, (int Ping, int Online)> info;
-            lock (serverInfo) info = new(serverInfo);
-            onlineState = new
+            name = online?.Name ?? "",
+            canChangeName = true,
+            configured = online != null,
+            server = online?.Server ?? EuropeServer,
+            status = online == null ? "Online is not set up" : gameRunning ? "Playing" : onlineModeBox.Checked ? "Ready to play online" : "Online is off",
+            servers = Regions.Select(r => new
             {
-                name = online.Value.Name,
-                server = online.Value.Server,
-                status = gameRunning ? "Playing" : onlineModeBox.Checked ? "Ready to play online" : "Online is off",
-                servers = Regions.Select(r => new
-                {
-                    name = r.Name, address = r.Address,
-                    ping = info.TryGetValue(r.Address, out var s) ? s.Ping : -1,
-                    online = info.TryGetValue(r.Address, out var s2) ? s2.Online : -1,
-                }).ToArray(),
-            };
-        }
+                name = r.Name, address = r.Address,
+                ping = info.TryGetValue(r.Address, out var s) ? s.Ping : -1,
+                online = info.TryGetValue(r.Address, out var s2) ? s2.Online : -1,
+            }).ToArray(),
+        };
         string json = JsonSerializer.Serialize(new
         {
             fields, toggles, online = onlineState, controls = ControlsState(),
             exe = exePathBox.Text, data = gamePathBox.Text,
             summary = hardwareLabel.Text, status = statusLabel.Text, statusOk = statusLabel.ForeColor != Color.FromArgb(255, 120, 120),
             running = gameRunning, deck = deckBase,
-            modProfiles = new { selected = modProfile, path = UseMod ? ModGamePath : "", locked = launchingGame },
+            modProfiles = new
+            {
+                selected = modProfile, path = UseMod ? ModGamePath : "", locked = launchingGame || gameRunning,
+                communitySelected = communityProfiles.ContainsKey(modProfile),
+                community = communityProfiles.Values.Select(profile => new
+                {
+                    id = profile.Id, name = profile.Name, author = profile.Author, path = profile.GamePath
+                })
+            },
             api = graphicsApiBox.SelectedItem?.ToString(), profile = profileBox.SelectedItem?.ToString(),
-            version = "V" + LauncherVersion + " · ONLINE BETA",
+            version = $"V{SwitcherVersion} · ReStreet {LauncherVersion}",
         });
         if (!force && json == lastState) return;
         lastState = json;
@@ -463,6 +511,7 @@ public partial class LauncherForm
             {
                 // Game rooms (rooms.py): when a room is full the game takes both players to the match set-up by itself.
                 string action = Str("action");
+                if (UseMod && action is "create" or "join" or "check" or "invite") return;
                 long roomId = m.TryGetProperty("room", out var rv) && rv.ValueKind == JsonValueKind.Number ? rv.GetInt64() : 0;
                 int stadium = m.TryGetProperty("stadium", out var sv2) && sv2.ValueKind == JsonValueKind.Number ? sv2.GetInt32() : 1047;
                 // The team picked for the match (game team id, 0 = own World Tour team); the server checks it.
@@ -513,6 +562,12 @@ public partial class LauncherForm
             using var rooms = await roomsTask;
             using var myRoom = await myRoomTask;
             using var invites = await invitesTask;
+            if (LoadOnlineConfig() != online)
+            {
+                convos?.Dispose();
+                msgs?.Dispose();
+                return;
+            }
             var waited = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             if (players.RootElement.TryGetProperty("searching_list", out var sl) && sl.ValueKind == JsonValueKind.Array)
                 foreach (var it in sl.EnumerateArray())
@@ -572,6 +627,7 @@ public partial class LauncherForm
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
         {
+            if (LoadOnlineConfig() != online) return;
             // Background refreshes keep the last data; only say so after three failures in a row (or when the
             // player's own action failed).
             if (cmd == "social" && ++socialFailures < 3) return;
@@ -606,7 +662,8 @@ public partial class LauncherForm
             if (action is "me" or "table" or "tournaments") return;
             error = "Server not reachable";
         }
-        SendToPage(JsonSerializer.Serialize(new { type = "comp", action, data, error }));
+        if (LoadOnlineConfig() == online)
+            SendToPage(JsonSerializer.Serialize(new { type = "comp", action, data, error }));
     }
 
     private static string CompError(string? code) => code switch

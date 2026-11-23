@@ -119,6 +119,15 @@ public partial class LauncherForm
         }
     }
 
+    private void RegisterThunderstoreProfile(string id)
+    {
+        if (launchingGame || AnyGameRunning() || !thunderstorePackages.TryGetValue(id, out var package)) return;
+        var profile = new ThunderstoreModProfile(package.Namespace, package.Name, "");
+        string current = communityProfiles.GetValueOrDefault(profile.Id)?.GamePath ?? "";
+        string? selected = PickModGameFolder(profile.Id, current);
+        if (selected != null) SetCommunityProfile(profile with { GamePath = selected });
+    }
+
     private static void OpenThunderstoreUrl(Uri url) =>
         Process.Start(new ProcessStartInfo(url.AbsoluteUri) { UseShellExecute = true })?.Dispose();
 }

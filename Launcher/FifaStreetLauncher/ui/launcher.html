@@ -28,8 +28,12 @@ button{font:inherit;color:inherit}
 .titlebar .ttl{margin-right:auto;font:700 12px Archivo;letter-spacing:2.4px;color:var(--faint);pointer-events:none}
 .tb{width:34px;height:28px;border:0;border-radius:7px;background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;transition:background .15s,color .15s}
 .tb:hover{background:var(--panel-2);color:#fff}.tb.x:hover{background:#e5484d;color:#fff}.tb svg{width:14px;height:14px}
-.tb.donate{width:auto;display:flex;align-items:center;gap:7px;padding:0 13px 0 9px;margin-right:6px;border-radius:999px;background:var(--kofi);color:#06212e;font:800 12px Archivo;letter-spacing:.3px}
-.tb.donate:hover{background:#4cbbe8;color:#06212e}.tb.donate svg{width:19px;height:19px}
+.tb.donate{width:auto;display:flex;align-items:center;gap:7px;padding:0 12px;border-radius:999px;font:800 12px Archivo;letter-spacing:.3px;white-space:nowrap}
+.tb.donate svg{width:19px;height:19px}
+.tb.donate.kofi{background:var(--kofi);color:#06212e}
+.tb.donate.kofi:hover{background:#4cbbe8}
+.tb.donate.coffee{background:var(--brand);color:#1d1a14}
+.tb.donate.coffee:hover{background:#ffe075}
 .browser [data-win]{display:none}
 
 /* Rail */
@@ -146,6 +150,7 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 
 /* Matches page: the ticket printer */
 #games{display:flex;flex-direction:column;gap:6px}
+#p-matches.mod-active #gPrint,#p-matches.mod-active #gInviting,#p-matches.mod-active #gMatchIntro{display:none}
 .print{border:1px solid var(--seam);border-radius:12px;background:var(--panel);overflow:hidden}
 .post{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,.8fr) minmax(0,1.2fr) minmax(0,.9fr) auto;gap:12px;align-items:end;padding:14px 16px 12px}
 .post label{display:block;font:700 11px Archivo;letter-spacing:1.9px;color:var(--muted);margin-bottom:6px;text-transform:uppercase}
@@ -205,7 +210,7 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .pathrow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-bottom:12px}
 .regions{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
-.region{padding:16px 18px;border-radius:10px;background:var(--panel);border:1px solid var(--seam);cursor:pointer;transition:border-color .15s}
+.region{padding:16px 18px;border-radius:10px;background:var(--panel);border:1px solid var(--seam);cursor:pointer;transition:border-color .15s;text-align:left}
 .region:hover{border-color:var(--seam-2)}.region.on{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
 .region b{font:800 22px var(--display);letter-spacing:.5px;text-transform:uppercase}.region small{display:block;color:var(--muted);margin-top:2px}
 .region .ping{float:right;font:700 12px var(--mono);color:var(--ok)}
@@ -388,12 +393,37 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 .mod-details{background:#181b23;border:1px solid #363b48;border-radius:12px;padding:16px;margin-top:14px}
 #modPath{overflow-wrap:anywhere;margin-bottom:0}
 @media(max-width:780px){.mod-grid{grid-template-columns:repeat(auto-fit,minmax(155px,1fr))}}
-#p-mods.details-open .mod-grid,#p-mods.details-open .mod-intro{display:none}
-#p-mods.details-open #thunderstore{display:none}
-#thunderstore{margin-top:24px}
+#p-mods.details-open .mod-grid,#p-mods.details-open .mod-intro,#p-mods.details-open #thunderstore{display:none}
+#thunderstore{margin:20px 0 24px;padding:16px 18px;background:var(--panel);border:1px solid var(--seam-2);border-radius:12px}
+.thunderstore-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#thunderstoreTitle{font:800 27px/1 var(--display);letter-spacing:.5px;text-transform:uppercase}
+#thunderstoreStatus{margin:10px 0 0}
+#thunderstoreStatus:empty{margin:0}
 .thunderstore-actions{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
-.thunderstore-package{padding:12px 0;border-bottom:1px solid var(--seam)}
+.thunderstore-head .thunderstore-actions{margin:0}
+.thunderstore-package{padding-top:12px;margin-top:12px;border-top:1px solid var(--seam)}
 .thunderstore-package p{margin:4px 0;overflow-wrap:anywhere}
+#modTeamsDialog{width:min(820px,calc(100vw - 40px));max-height:85vh;margin:auto;padding:20px;background:var(--panel);color:var(--ink);border:1px solid var(--seam-2);border-radius:12px}
+#modTeamsDialog[open]{display:flex;flex-direction:column;overflow:hidden}
+#modTeamsDialog > :not(#modTeamsGrid){flex-shrink:0}
+#modTeamsDialog::backdrop{background:#000a}
+#modTeamsDialog .tpt{width:100%;min-height:96px}
+#modTeamsGrid>li{list-style:none}
+#teamRosterDialog{width:min(980px,calc(100vw - 32px));max-height:85vh;margin:auto;padding:20px;background:var(--panel);color:var(--ink);border:1px solid var(--seam-2);border-radius:12px}
+#teamRosterDialog::backdrop{background:#000a}
+#teamRosterStatus{color:var(--muted);margin-top:12px}
+#teamRosterStats{overflow:auto;margin-top:12px}
+#teamRosterStats .ptable{text-align:left}
+#teamRosterStats .ptable th,#teamRosterStats .ptable td{white-space:nowrap;padding:8px}
+#modTeamsStatus{color:var(--muted);margin:6px 0 12px}
+#modTeamsStatus:empty{margin:0}
+#modTeamsGroups{max-height:22vh;overflow-y:auto}
+#modTeamsGrid{margin:12px 0}
+.mod-teams-header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#modTeamsSearch{width:100%}
+#p-mods.details-open #thunderstoreProfiles{display:none}
+#thunderstoreProfilesList{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
+#thunderstoreProfilesList button[aria-pressed=true]{border-color:var(--accent)}
 .mod-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin:16px 0}
 .mod-gallery button{padding:0;overflow:hidden;cursor:zoom-in}
 .mod-gallery img{display:block;width:100%;aspect-ratio:16/9;object-fit:contain;background:#0c0e13}
@@ -431,7 +461,8 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 </style></head><body>
 <div class="win" id="win">
   <div class="titlebar" id="titlebar"><span class="ttl">RESTREET LAUNCHER</span>
-    <button class="tb donate" id="donate" title="Support ReStreet on Ko-fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#06212e" d="M2.5 6.5h15v6.2a5.3 5.3 0 0 1-5.3 5.3H7.8a5.3 5.3 0 0 1-5.3-5.3zm15 1.2h1.3a3.2 3.2 0 0 1 0 6.4h-1.6c.2-.5.3-1 .3-1.5v-.6h1.3a1.2 1.2 0 0 0 0-2.4h-1.3z"/><path fill="#ff5e5b" d="M10 10.1c.8-1 2.6-.7 2.6.9 0 1.6-2.6 3.2-2.6 3.2S7.4 12.6 7.4 11c0-1.6 1.8-1.9 2.6-.9z"/></svg><span>Donate</span></button>
+    <button type="button" class="tb donate coffee" id="donateSwitcher" title="Support smel_111 on Buy Me a Coffee"><span>Support Mod Switcher</span></button>
+    <button type="button" class="tb donate kofi" id="donate" title="Support the original ReStreet on Ko-fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#06212e" d="M2.5 6.5h15v6.2a5.3 5.3 0 0 1-5.3 5.3H7.8a5.3 5.3 0 0 1-5.3-5.3zm15 1.2h1.3a3.2 3.2 0 0 1 0 6.4h-1.6c.2-.5.3-1 .3-1.5v-.6h1.3a1.2 1.2 0 0 0 0-2.4h-1.3z"/><path fill="#ff5e5b" d="M10 10.1c.8-1 2.6-.7 2.6.9 0 1.6-2.6 3.2-2.6 3.2S7.4 12.6 7.4 11c0-1.6 1.8-1.9 2.6-.9z"/></svg><span>Support original ReStreet</span></button>
     <button class="tb" data-win="min" title="Minimize"><svg viewBox="0 0 14 14"><path d="M2 7h10" stroke="currentColor" stroke-width="1.6"/></svg></button>
     <button class="tb x" data-win="close" title="Close"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.6"/></svg></button>
   </div>
@@ -505,7 +536,9 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
     <div class="menu" id="pmenu"><div data-a="dm">Send message</div><div data-a="add">Add friend</div><div data-a="remove" class="bad">Remove friend</div><div data-a="block" class="bad">Block</div></div>
   </section>
   <section class="page" id="p-matches"><div class="panel">
-    <h2>Matches</h2><p class="sub">Post a match or join one. Keep the game closed: when someone joins, ReStreet opens for both of you straight into the match lobby.</p>
+    <h2>Matches</h2><p class="sub" id="gMatchIntro">Post a match or join one. Keep the game closed: when someone joins, ReStreet opens for both of you straight into the match lobby.</p>
+    <div id="gModTeams" hidden><button type="button" class="btn" id="browseMatchModTeams">View teams</button></div>
+    <p class="sub" id="gModNotice" hidden>Official matches use Vanilla teams and crests. Select Vanilla in Mods to create or join a match.</p>
     <div id="games">
       <div id="gMine"></div>
       <div class="inviting" id="gInviting" hidden><span class="lbl">INVITATION</span><b id="gInvText"></b><button type="button" class="linkbtn" id="gInvCancel">Cancel</button></div>
@@ -558,11 +591,19 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
     <div class="sec">SERVER</div>
     <div class="regions" id="regions"></div>
     <div class="sec">ACCOUNT</div>
-    <div class="grid2">
-      <div class="field"><label>ONLINE NAME</label><input id="oname" readonly></div>
-      <div class="field"><label>STATUS</label><input id="ostatus" readonly></div>
-    </div>
-    <p class="sub" style="margin-top:10px">To change your online name, run the online patch again.</p>
+    <form id="changeOnlineName">
+      <div class="grid2">
+        <div class="field"><label for="oname">ONLINE NAME</label><input id="oname" maxlength="32" required autocomplete="off" spellcheck="false" readonly></div>
+        <div class="field"><label for="ostatus">STATUS</label><input id="ostatus" readonly></div>
+      </div>
+      <div id="onlineNameActions" style="margin-top:12px" hidden>
+        <p class="sub" id="onlineSetupHint" hidden>Choose a server and save a name to set up online play.</p>
+        <button class="btn" type="submit" id="saveOnlineName">Save online name</button>
+        <p class="sub">Friends and rankings stay tied to each online name. You can switch back to a name used on this PC.</p>
+        <p class="sub" id="onlineNameNote" role="status"></p>
+      </div>
+    </form>
+    <p class="sub" id="onlineNamePatchHint" style="margin-top:10px">To change your online name, run the online patch again.</p>
   </div></section>
   <section class="page" id="p-display"><div class="panel">
     <h2>Display</h2><p class="sub">Screen, refresh rate and language.</p>
@@ -600,6 +641,18 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
   </div></section>
   <section class="page" id="p-mods"><div class="panel">
     <h2>Mods</h2>
+    <section id="thunderstore" aria-labelledby="thunderstoreTitle">
+      <div class="thunderstore-head">
+        <h3 id="thunderstoreTitle">Thunderstore</h3>
+        <div class="thunderstore-actions">
+          <button type="button" class="btn" id="thunderstoreRefresh">Refresh catalog</button>
+          <button type="button" class="btn" id="thunderstoreCommunity">Open Thunderstore</button>
+        </div>
+      </div>
+      <p class="sub" id="thunderstoreStatus" role="status"></p>
+      <div id="thunderstorePackages"></div>
+    </section>
+    <h3 class="sec mod-intro">Manual profiles</h3>
     <p class="sub mod-intro">Each profile has its own World Tour saves. Mod profiles launch offline.</p>
     <p class="mod-hint mod-intro">Double-click a mod to open its page.</p>
     <div class="mod-grid" role="group" aria-label="Game profile">
@@ -622,21 +675,18 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
         <button type="button" class="btn mod-arrow" id="modNext" aria-label="Next image">›</button>
       </div>
     </dialog>
+    <button type="button" class="btn" id="browseVanillaTeams" hidden>View Vanilla teams</button>
+    <section id="thunderstoreProfiles" hidden>
+      <h3>Thunderstore profiles</h3>
+      <div id="thunderstoreProfilesList" role="group" aria-label="Thunderstore profiles"></div>
+    </section>
     <div class="mod-details" id="modDetails">
     <button type="button" class="btn" id="browseMod">Select mod Game folder</button>
+    <button type="button" class="btn" id="browseModTeams">View mod teams</button>
     <button type="button" class="btn" id="downloadMod">Download mod</button>
     <button type="button" class="btn" id="modPreview">View original post</button>
     <p class="sub" id="modPath"></p>
     </div>
-    <section id="thunderstore" aria-labelledby="thunderstoreTitle">
-      <h3 id="thunderstoreTitle">Thunderstore</h3>
-      <div class="thunderstore-actions">
-        <button type="button" class="btn" id="thunderstoreRefresh">Refresh catalog</button>
-        <button type="button" class="btn" id="thunderstoreCommunity">Open Thunderstore</button>
-      </div>
-      <p class="sub" id="thunderstoreStatus" role="status"></p>
-      <div id="thunderstorePackages"></div>
-    </section>
   </div></section>
   <section class="page" id="p-advanced"><div class="panel">
     <h2>Advanced</h2><p class="sub">Game files and renderer options for textures, lighting, black screens and stutter.</p>
@@ -658,6 +708,29 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
     <div class="row" style="margin-top:20px"><button class="btn" data-cmd="logs">Open logs</button><button class="btn" data-cmd="folder">Open game folder</button><button class="btn" data-cmd="shortcut">Desktop shortcut</button></div>
   </div></section>
 </div>
+<dialog id="modTeamsDialog" aria-labelledby="modTeamsTitle">
+  <div class="mod-teams-header"><h3 id="modTeamsTitle">Mod teams</h3>
+    <form method="dialog"><button class="btn">Close</button></form>
+  </div>
+  <div class="tptools"><input type="search" id="modTeamsSearch" aria-label="Search teams" placeholder="Search teams" autocomplete="off"></div>
+  <div class="tpchips" id="modTeamsGroups" role="group" aria-label="Filter teams"></div>
+  <p id="modTeamsStatus" class="sub" role="status"></p>
+  <ul id="modTeamsGrid" class="tpgrid" aria-label="Teams" tabindex="0"></ul>
+</dialog>
+<dialog id="teamRosterDialog" aria-labelledby="teamRosterTitle">
+  <div class="mod-teams-header"><h3 id="teamRosterTitle">Team squad</h3>
+    <form method="dialog"><button class="btn">Close</button></form>
+  </div>
+  <p id="teamRosterStatus" class="sub" role="status"></p>
+  <div id="teamRosterStats" hidden>
+    <table class="ptable">
+      <thead><tr><th scope="col">#</th><th scope="col">Player</th><th scope="col">Position</th><th scope="col">Overall</th>
+      <th scope="col">Speed</th><th scope="col">Shooting</th><th scope="col">Passing</th><th scope="col">Dribbling</th>
+      <th scope="col">Defending</th><th scope="col">Athleticism</th><th scope="col">Goalkeeping</th></tr></thead>
+      <tbody id="teamRosterPlayers"></tbody>
+    </table>
+  </div>
+</dialog>
 <div class="veil gone" id="perfAsk"><div class="toast"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div><b>Help make ReStreet faster</b>
   <p>After each session, send an anonymous performance report: your graphics card, processor, memory, settings and FPS. No name, no account. You can turn it off in Advanced.</p>
   <div class="btns"><button class="later" id="perfNo">No thanks</button><button class="go" id="perfYes">Share</button></div></div></div>
@@ -681,7 +754,7 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
   <div class="tptools"><input id="tpSearch" placeholder="Search teams" autocomplete="off"></div>
   <div class="tpchips" id="tpChips"></div>
   <div class="tpgrid" id="tpGrid" role="listbox" aria-label="Teams"></div>
-  <div class="btns"><button class="later" id="tpCancel">Cancel</button><button class="go" id="tpOk">Use this team</button></div></div></div>
+  <div class="btns"><button class="later" id="tpCancel">Cancel</button><button class="later" id="tpRoster" hidden>View squad</button><button class="go" id="tpOk">Use this team</button></div></div></div>
 <div class="veil gone" id="roomReady"><div class="toast"><span class="vstamp">Game ready</span><b id="rrTitle">Game ready!</b>
   <div class="rrvs" id="rrVs"></div>
   <p id="rrText">Both players are in. Press PLAY: the game opens and takes you to the match by itself. Don't touch anything until the match set-up appears.</p>
@@ -769,7 +842,7 @@ $('okUse').onclick = () => { const v = $('okPaste').value.trim(); if (v) send({c
 $('updLater').onclick = () => $('updAsk').classList.add('gone');
 $('updGo').onclick = () => { $('updBtns').style.display = 'none'; $('updBar').style.display = 'block'; $('updText').textContent = 'Downloading the update...'; send({cmd: 'updateGo'}); };
 function renderUpdate(d) {
-  if (d.type === 'update') { $('updTitle').textContent = 'ReStreet ' + d.version + ' is available'; $('updAsk').classList.remove('gone'); }
+  if (d.type === 'update') { $('updTitle').textContent = 'ReStreet Mod Switcher ' + d.version; $('updAsk').classList.remove('gone'); }
   else if (d.type === 'updateProgress') { $('updBar').firstElementChild.style.width = d.percent + '%'; $('updText').textContent = 'Downloading the update... ' + d.percent + '%'; if (d.percent >= 100) $('updText').textContent = 'Checking and installing. The launcher will reopen by itself.'; }
   else if (d.type === 'updateError') { $('updText').textContent = d.message; $('updBar').style.display = 'none'; $('updBtns').style.display = ''; }
 }
@@ -1006,8 +1079,226 @@ $('browseMod').onclick = () => send({cmd: 'browseMod'});
 $('downloadMod').onclick = () => send({cmd: 'downloadMod'});
 $('modPreview').onclick = () => send({cmd: 'modPreview'});
 
+const modCrestBatchSize = 24;
+let teamRosterRequest = 0;
+
+function openTeamRoster(team, name, official) {
+  $('teamRosterTitle').textContent = name;
+  $('teamRosterStatus').textContent = 'Loading squad…';
+  $('teamRosterStats').hidden = true;
+  $('teamRosterPlayers').replaceChildren();
+  $('teamRosterDialog').showModal();
+  send({cmd: 'teamRoster', id: String(++teamRosterRequest), team, official});
+}
+
+function renderTeamRoster(message) {
+  if (!$('teamRosterDialog').open || message.id !== String(teamRosterRequest)) return;
+  if (message.error) {
+    $('teamRosterStatus').textContent = message.worldTour
+      ? 'Could not identify a current World Tour squad in this profile’s save.'
+      : 'Could not read this squad from the game files.';
+    return;
+  }
+  if (message.name) $('teamRosterTitle').textContent = message.name;
+  $('teamRosterStatus').textContent = message.players.length ? '' : 'No players found for this team.';
+  if (!message.players.length) return;
+  const rows = document.createDocumentFragment();
+  for (const player of message.players) {
+    const row = document.createElement('tr');
+    for (const value of [player.number || '—', player.name, player.position, player.overall, player.speed,
+      player.shooting, player.passing, player.dribbling, player.defending, player.athleticism, player.goalkeeping]) {
+      const cell = document.createElement('td');
+      cell.textContent = value;
+      row.append(cell);
+    }
+    rows.append(row);
+  }
+  $('teamRosterPlayers').replaceChildren(rows);
+  $('teamRosterStats').hidden = false;
+}
+
+let modTeamsRequest = 0;
+let modTeamsOpenId = '';
+let modCrestsId = '';
+let modTeamsData = [];
+let modTeamsGroup = '';
+let modTeamsProfile = '';
+const modTeamImages = new Map();
+const modGroupLabels = new Map([
+  ['Clubes 2026', '2026 Clubs'],
+  ['Equipos Originales', 'Original Teams'],
+  ['Liga LEYENDA', 'Legends League'],
+  ['Resto de América', 'Rest of the Americas'],
+  ['Resto de Europa', 'Rest of Europe'],
+  ['Selecciones 2026', '2026 National Teams']
+]);
+const visibleModBadges = new Set();
+let requestedModCrests = [];
+const modCrestObserver = new IntersectionObserver(entries => {
+  for (const {target, isIntersecting} of entries) {
+    if (isIntersecting && target.isConnected) visibleModBadges.add(target);
+    else visibleModBadges.delete(target);
+  }
+  requestVisibleModCrests();
+}, {root: $('modTeamsGrid'), rootMargin: '120px 0px'});
+
+function requestVisibleModCrests() {
+  if (requestedModCrests.length || !$('modTeamsDialog').open) return;
+  const assets = new Set();
+  for (const badge of visibleModBadges) {
+    const id = Number(badge.dataset.asset);
+    if (!modTeamImages.has(id)) assets.add(id);
+    if (assets.size === modCrestBatchSize) break;
+  }
+  if (!assets.size) return;
+  requestedModCrests = [...assets];
+  modCrestsId = String(++modTeamsRequest);
+  send({cmd: 'modTeamCrests', id: modCrestsId, assets: requestedModCrests});
+}
+
+function renderModTeams() {
+  const search = $('modTeamsSearch').value.trim().toLocaleLowerCase();
+  const filtered = modTeamsData.filter(team =>
+    (!modTeamsGroup || team.groups.includes(modTeamsGroup)) && team.name.toLocaleLowerCase().includes(search));
+  $('modTeamsStatus').textContent = filtered.length ? '' : 'No teams found';
+
+  const list = document.createDocumentFragment();
+  const pending = [];
+  modCrestObserver.disconnect();
+  visibleModBadges.clear();
+  for (const team of filtered) {
+    const item = document.createElement('li');
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'tpt';
+    card.onclick = () => openTeamRoster(team.id, team.name, false);
+    const badge = document.createElement('span');
+    badge.className = team.id === 0 ? 'crest wt' : 'crest ph';
+    badge.dataset.asset = team.asset;
+    badge.textContent = team.id === 0 ? 'WT' : team.name.split(/\s+/).slice(0, 2).map(word => word[0]).join('').toUpperCase();
+    badge.setAttribute('aria-hidden', 'true');
+    if (modTeamImages.has(team.asset)) setModBadge(badge, modTeamImages.get(team.asset));
+    else if (team.asset > 0) pending.push(badge);
+    const name = document.createElement('span');
+    name.textContent = team.name;
+    card.append(badge, name);
+    item.append(card);
+    list.append(item);
+  }
+  const grid = $('modTeamsGrid');
+  grid.replaceChildren(list);
+  grid.scrollTop = 0;
+  for (const badge of pending) modCrestObserver.observe(badge);
+}
+
+function renderModTeamsGroups() {
+  const names = [...new Set(modTeamsData.flatMap(team => team.groups))].sort((a, b) => a.localeCompare(b));
+  const container = $('modTeamsGroups');
+  container.replaceChildren();
+  if (!names.length) return;
+  for (const group of ['', ...names]) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'tpchip';
+    button.textContent = (modGroupLabels.get(group) || group) || 'All';
+    button.classList.toggle('on', group === modTeamsGroup);
+    button.setAttribute('aria-pressed', String(group === modTeamsGroup));
+    button.onclick = () => {
+      modTeamsGroup = group;
+      for (const item of container.children) {
+        item.classList.toggle('on', item === button);
+        item.setAttribute('aria-pressed', String(item === button));
+      }
+      renderModTeams();
+    };
+    container.append(button);
+  }
+}
+
+function setModBadge(badge, png) {
+  if (!png) return;
+  const img = document.createElement('img');
+  img.alt = '';
+  img.src = 'data:image/png;base64,' + png;
+  badge.replaceChildren(img);
+  badge.classList.remove('ph');
+}
+
+function renderModCatalog(message) {
+  if (!$('modTeamsDialog').open) return;
+  if (message.type === 'modTeamCrests') {
+    if (message.id !== modCrestsId) return;
+    const received = new Set(requestedModCrests);
+    requestedModCrests = [];
+    for (const id of received) modTeamImages.set(id, message.crests[id] || '');
+    for (const badge of $('modTeamsGrid').querySelectorAll('[data-asset]')) {
+      const key = Number(badge.dataset.asset);
+      if (received.has(key)) setModBadge(badge, modTeamImages.get(key));
+    }
+    requestVisibleModCrests();
+    return;
+  }
+  if (message.id !== modTeamsOpenId) return;
+  if (message.error) {
+    $('modTeamsStatus').textContent = message.missingFolder
+      ? 'Select the mod’s Game folder in Mods.'
+      : 'Could not read teams from this mod.';
+    return;
+  }
+  modTeamsData = [{id: 0, asset: 0, name: 'My World Tour team', groups: ['World Tour']}, ...message.teams];
+  $('modTeamsSearch').disabled = false;
+  renderModTeamsGroups();
+  renderModTeams();
+}
+
+function openModTeams() {
+  modTeamsOpenId = String(++modTeamsRequest);
+  modTeamsData = [];
+  modTeamImages.clear();
+  modTeamsGroup = '';
+  $('modTeamsSearch').value = '';
+  $('modTeamsSearch').disabled = true;
+  $('modTeamsGrid').replaceChildren();
+  $('modTeamsGroups').replaceChildren();
+  $('modTeamsStatus').textContent = 'Loading mod teams…';
+  $('modTeamsDialog').showModal();
+  send({cmd: 'modTeams', id: modTeamsOpenId});
+}
+$('browseModTeams').onclick = openModTeams;
+$('browseMatchModTeams').onclick = openModTeams;
+$('browseVanillaTeams').onclick = openModTeams;
+$('modTeamsDialog').addEventListener('close', () => {
+  modCrestObserver.disconnect();
+  visibleModBadges.clear();
+  modCrestsId = '';
+  requestedModCrests = [];
+  send({cmd: 'closeModTeams'});
+  modTeamImages.clear();
+});
+$('modTeamsSearch').oninput = renderModTeams;
+
 let thunderstoreRequested = false;
 const thunderstoreDownloads = new Map();
+let thunderstoreProfilesState = '';
+
+function renderThunderstoreProfiles(profiles, selected, locked) {
+  const state = JSON.stringify([profiles, selected, locked]);
+  if (thunderstoreProfilesState === state) return;
+  thunderstoreProfilesState = state;
+  $('thunderstoreProfiles').hidden = profiles.length === 0;
+  const list = document.createDocumentFragment();
+  for (const mod of profiles) {
+    const button = document.createElement('button');
+    button.className = 'btn';
+    button.type = 'button';
+    button.textContent = mod.name + ' · ' + mod.author;
+    button.disabled = locked;
+    button.setAttribute('aria-pressed', String(mod.id === selected));
+    button.onclick = () => send({cmd: 'selectModProfile', value: mod.id});
+    list.append(button);
+  }
+  $('thunderstoreProfilesList').replaceChildren(list);
+}
 
 function loadThunderstore() {
   if (!host || $('thunderstoreRefresh').disabled) return;
@@ -1061,7 +1352,12 @@ function renderThunderstore(message) {
       status.textContent = '';
       send({cmd: 'thunderstoreDownload', id: mod.id});
     };
-    actions.append(page, download);
+    const register = document.createElement('button');
+    register.type = 'button';
+    register.className = 'btn';
+    register.textContent = 'Select Game folder for this package';
+    register.onclick = () => send({cmd: 'registerThunderstoreProfile', id: mod.id});
+    actions.append(page, download, register);
     row.append(title, description, actions);
     list.append(row);
   }
@@ -1072,15 +1368,58 @@ $('thunderstoreRefresh').onclick = loadThunderstore;
 $('thunderstoreCommunity').onclick = () => send({cmd: 'thunderstorePage'});
 $('modsTab').addEventListener('click', () => { if (!thunderstoreRequested) loadThunderstore(); });
 
+let savingOnlineName = false;
+let editingOnlineName = false;
+let canChangeOnlineName = false;
+let selectedOnlineServer = '';
+$('oname').oninput = () => {
+  editingOnlineName = true;
+  $('onlineNameNote').textContent = '';
+};
+
+function updateOnlineNameControls() {
+  const locked = !canChangeOnlineName || savingOnlineName || gameIsRunning;
+  $('oname').readOnly = locked;
+  $('saveOnlineName').disabled = locked;
+}
+
+$('changeOnlineName').onsubmit = event => {
+  event.preventDefault();
+  if ($('oname').readOnly || !host) return;
+  savingOnlineName = true;
+  updateOnlineNameControls();
+  $('onlineNameNote').textContent = '';
+  send({cmd: 'onlineName', value: $('oname').value, address: selectedOnlineServer});
+};
+function renderOnlineName(message) {
+  savingOnlineName = false;
+  if (message.ok) editingOnlineName = false;
+  updateOnlineNameControls();
+  $('onlineNameNote').textContent = message.note;
+}
+
 function render(s) {
   if (s.modProfiles) {
     $('modsTab').style.display = '';
     const modded = s.modProfiles.selected !== 'vanilla';
+    const profile = JSON.stringify([s.modProfiles.selected, s.modProfiles.path]);
+    if (profile !== modTeamsProfile && $('modTeamsDialog').open) $('modTeamsDialog').close();
+    modTeamsProfile = profile;
+    $('browseModTeams').disabled = !modded || !s.modProfiles.path;
+    $('gModTeams').hidden = modded && !s.modProfiles.path;
+    $('browseVanillaTeams').hidden = modded;
+    $('modTeamsTitle').textContent = modded ? 'Mod teams' : 'Teams';
+    $('tpRoster').hidden = false;
+    $('p-matches').classList.toggle('mod-active', modded);
+    $('gModNotice').hidden = !modded;
     modCards.forEach(card => {
       card.setAttribute('aria-pressed', String(card.dataset.mod === s.modProfiles.selected));
       card.disabled = s.modProfiles.locked;
     });
     $('modDetails').hidden = !modded;
+    $('downloadMod').hidden = !!s.modProfiles.communitySelected;
+    $('modPreview').hidden = !!s.modProfiles.communitySelected;
+    renderThunderstoreProfiles(s.modProfiles.community || [], s.modProfiles.selected, s.modProfiles.locked);
     $('browseMod').disabled = !modded || s.modProfiles.locked;
     $('modPath').textContent = modded ? s.modProfiles.path || 'No mod Game folder selected.' : '';
   }
@@ -1095,15 +1434,35 @@ function render(s) {
   $('cApi').textContent = s.api || '–'; $('cProfile').textContent = s.profile || '';
   if (s.version) $('ver').textContent = s.version;
   const o = s.online;
+  canChangeOnlineName = !!o?.canChangeName;
+  $('onlineNameActions').hidden = !canChangeOnlineName;
+  $('onlineNamePatchHint').hidden = canChangeOnlineName;
+  $('onlineSetupHint').hidden = o?.configured !== false;
+  updateOnlineNameControls();
+  if (!editingOnlineName || !canChangeOnlineName) $('oname').value = o?.name || '';
   if (o) {
-    $('mename').textContent = o.name; $('meav').textContent = (o.name || '?')[0].toUpperCase(); $('oname').value = o.name;
-    const cur = (o.servers || []).find(x => x.address === o.server);
-    $('meserver').textContent = (cur ? cur.name : o.server) + ' server'; $('cServer').textContent = cur ? cur.name : o.server;
+    const configured = o.configured !== false;
+    if (!selectedOnlineServer || configured) selectedOnlineServer = o.server;
+    $('mename').textContent = o.name || 'Offline'; $('meav').textContent = (o.name || '?')[0].toUpperCase();
+    const cur = (o.servers || []).find(x => x.address === selectedOnlineServer);
+    $('meserver').textContent = configured ? (cur ? cur.name : o.server) + ' server' : 'Online is not set up';
+    $('cServer').textContent = cur ? cur.name : o.server;
     $('ostatus').value = o.status || '';
-    $('regions').innerHTML = (o.servers || []).map(x => '<div class="region' + (x.address === o.server ? ' on' : '') + '" data-a="' + esc(x.address) + '">' +
+    $('regions').innerHTML = (o.servers || []).map(x => '<button type="button" class="region' + (x.address === selectedOnlineServer ? ' on' : '') + '" aria-pressed="' + (x.address === selectedOnlineServer) + '" data-a="' + esc(x.address) + '">' +
       '<span class="ping">' + (x.ping >= 0 ? '<span class="dot"></span>' + x.ping + ' ms' : 'offline') + '</span><b>' + esc(x.name) + '</b><small>' +
-      (x.online >= 0 ? x.online + ' players online' : '&nbsp;') + '</small></div>').join('');
-    document.querySelectorAll('.region').forEach(r => r.onclick = () => send({cmd: 'server', address: r.dataset.a}));
+      (x.online >= 0 ? x.online + ' players online' : '&nbsp;') + '</small></button>').join('');
+    const buttons = $('regions').querySelectorAll('.region');
+    buttons.forEach(r => r.onclick = () => {
+      if (configured) {
+        send({cmd: 'server', address: r.dataset.a});
+        return;
+      }
+      selectedOnlineServer = r.dataset.a;
+      buttons.forEach(button => {
+        button.classList.toggle('on', button === r);
+        button.setAttribute('aria-pressed', String(button === r));
+      });
+    });
     if (cur) { $('cOnline').textContent = cur.online >= 0 ? cur.online : '–'; $('cPing').textContent = cur.ping >= 0 ? cur.ping + ' ms ping' : 'server offline'; }
   } else {
     $('mename').textContent = 'Offline'; $('meserver').textContent = 'Online patch not installed'; $('medot').style.background = '#6b7280';
@@ -1197,8 +1556,16 @@ function closeTeamPicker(ok) {
   const done = tpDone; tpDone = null;
   if (ok && done) { (done.store || setMyTeam)(tpPick); done.run(tpPick); }
 }
-$('tpGrid').onclick = e => { const t = e.target.closest('.tpt'); if (!t) return; tpPick = Number(t.dataset.team); tpRender(); const on = $('tpGrid').querySelector('.tpt.on'); if (on) on.focus(); };
-$('tpGrid').ondblclick = e => { if (e.target.closest('.tpt')) closeTeamPicker(true); };
+$('tpGrid').onclick = e => { const t = e.target.closest('.tpt'); if (!t) return;
+  if (e.target.closest('.crest') && !$('tpRoster').hidden) {
+    const id = Number(t.dataset.team);
+    if (!$('teamRosterDialog').open) openTeamRoster(id, id ? TEAM_NAME[id] : 'My World Tour team', true);
+    return;
+  }
+  tpPick = Number(t.dataset.team); tpRender(); $('tpGrid').querySelector('.tpt.on')?.focus();
+};
+$('tpGrid').ondblclick = e => { if (e.target.closest('.tpt') && !$('teamRosterDialog').open) closeTeamPicker(true); };
+$('tpRoster').onclick = () => openTeamRoster(tpPick, tpPick ? TEAM_NAME[tpPick] : 'My World Tour team', true);
 $('tpChips').onclick = e => { const c = e.target.closest('.tpchip'); if (c) { tpLeague = c.dataset.league; tpRender(); } };
 $('tpSearch').oninput = tpRender;
 $('tpOk').onclick = () => closeTeamPicker(true);
@@ -1210,16 +1577,20 @@ $('teamPick').onkeydown = e => {
 $('teamPick').onclick = e => { if (e.target === $('teamPick')) closeTeamPicker(false); };
 $('gTeamBtn').onclick = () => openTeamPicker({join: false, run: () => {}}, 'Pick your team', 'Choose the team you will play your next match with.');
 $('donate').onclick = () => send({cmd: 'donate'});
+$('donateSwitcher').onclick = () => send({cmd: 'donateSwitcher'});
 // Stadium strip: photos made from the player's own game files on the first PLAY (a tile without one shows the name).
 // Picking a stadium shows its Post match button right on the photo.
 const randomPassword = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), x => 'abcdefghjkmnpqrstuvwxyz23456789'[x % 31]).join('');
 let inviteTarget = null;
+const hasActiveMod = () => $('p-matches').classList.contains('mod-active');
 function startInvite(name) {
+  if (hasActiveMod()) { goPage('p-matches'); return; }
   inviteTarget = name; goPage('p-matches');
   $('gInvText').textContent = 'Inviting ' + name + ': pick the mode, stadium and team'; $('gInviting').hidden = false; $('gPostBtn').textContent = 'Create and invite';
 }
 function endInvite() { inviteTarget = null; $('gInviting').hidden = true; $('gPostBtn').textContent = 'Post match'; }
 const postMatch = () => {
+  if (hasActiveMod()) return;
   const typed = $('gPass').value.trim();
   if (inviteTarget) { pendingInvite = inviteTarget; invited.add(inviteTarget); }
   send({cmd: 'room', action: 'create', title: $('gTitle').value, mode: $('gMode').value, stadium: Number($('gStadium').value), team: Number($('gTeam').value),
@@ -1265,6 +1636,7 @@ $('passAsk').onkeydown = e => { if (e.key === 'Escape') { e.preventDefault(); cl
 $('passAsk').onclick = e => { if (e.target === $('passAsk')) closePassword(); };
 const onTickets = e => {
   const j = e.target.closest('[data-join]');
+  if (j && hasActiveMod()) { goPage('p-matches'); return; }
   const pick = password => openTeamPicker({join: true, run: team => { j.disabled = true; send({cmd: 'room', action: 'join', room: Number(j.dataset.join), team, password, channel}); }},
     'Join ' + j.dataset.host + "'s game", 'Pick the team you will play with. ' + j.dataset.host + ' plays with ' + j.dataset.hostteam + '.');
   if (j && j.dataset.private) askPassword(j.dataset.host, Number(j.dataset.join), pick); else if (j) pick('');
@@ -1275,7 +1647,8 @@ $('hList').addEventListener('click', onTickets);
 $('t-seek').addEventListener('click', onTickets);
 let gamesHtml = '', readyShown = 0, gameIsRunning = false, canInvite = null, invShown = 0, pendingInvite = null, myRoomNow = null;
 const invited = new Set(), invDismissed = new Set();
-$('invJoin').onclick = () => { const i = invShown; if (!i) return; $('inviteCard').hidden = true; invDismissed.add(i.room);
+$('invJoin').onclick = () => { if (hasActiveMod()) { $('inviteCard').hidden = true; goPage('p-matches'); return; }
+  const i = invShown; if (!i) return; $('inviteCard').hidden = true; invDismissed.add(i.room);
   openTeamPicker({join: true, run: team => send({cmd: 'room', action: 'join', room: i.room, team, channel})}, 'Join ' + i.from + "'s game", 'Pick the team you will play with.'); };
 $('inviteCard').onkeydown = e => { if (e.key === 'Escape') { e.preventDefault(); $('invNo').click(); } };
 $('invNo').onclick = () => { const i = invShown; if (!i) return; $('inviteCard').hidden = true; invDismissed.add(i.room); send({cmd: 'room', action: 'decline', room: i.room, channel}); };
@@ -1637,13 +2010,14 @@ setInterval(() => {
   }
 }, 3000);
 document.querySelector('[data-p=p-comp]').addEventListener('click', () => { compAt = {table: 0, tournaments: 0}; send({cmd: 'comp', action: 'me'}); });
-if (host) { host.addEventListener('message', e => !e.data ? 0 : e.data.type === 'social' ? renderSocial(e.data) : e.data.type === 'comp' ? renderComp(e.data) : e.data.type === 'saves' ? renderSaves(e.data) : e.data.type === 'key' ? renderKey(e.data) : e.data.type === 'perf' ? renderPerf(e.data) : e.data.type === 'perfHistory' ? renderHistory(e.data) : String(e.data.type).startsWith('thunderstore') ? renderThunderstore(e.data) : String(e.data.type).startsWith('update') ? renderUpdate(e.data) : render(e.data)); send({cmd: 'state'}); }
+if (host) { host.addEventListener('message', e => !e.data ? 0 : e.data.type === 'social' ? renderSocial(e.data) : e.data.type === 'comp' ? renderComp(e.data) : e.data.type === 'saves' ? renderSaves(e.data) : e.data.type === 'key' ? renderKey(e.data) : e.data.type === 'onlineName' ? renderOnlineName(e.data) : e.data.type === 'perf' ? renderPerf(e.data) : e.data.type === 'perfHistory' ? renderHistory(e.data) : e.data.type === 'teamRoster' ? renderTeamRoster(e.data) : e.data.type === 'modTeams' || e.data.type === 'modTeamCrests' ? renderModCatalog(e.data) : String(e.data.type).startsWith('thunderstore') ? renderThunderstore(e.data) : String(e.data.type).startsWith('update') ? renderUpdate(e.data) : render(e.data)); send({cmd: 'state'}); }
 // Controller (Steam Deck, Xbox pad): D-pad / left stick move the focus to the nearest control on screen, A presses it,
 // B closes a list or dialog (else goes back to Home), LB / RB step through the pages. Only while a pad is connected.
 const PAD = {A: 0, B: 1, LB: 4, RB: 5, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15};
 function focusables() {
   const veil = [...document.querySelectorAll('.veil:not(.gone):not([hidden])')].pop(), dd = document.querySelector('.dd.open');
-  const root = dd ? dd.querySelector('.dd-list') : veil || document;
+  const dialog = $('teamRosterDialog').open ? $('teamRosterDialog') : $('modTeamsDialog').open ? $('modTeamsDialog') : null;
+  const root = dialog || (dd ? dd.querySelector('.dd-list') : veil || document);
   return [...root.querySelectorAll('button,input:not([type=hidden]),select,[tabindex="0"],.dd-opt,.tpt,.spic')].filter(el => {
     if (el.disabled) return false; const r = el.getBoundingClientRect();
     return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden' && (veil || dd || !el.closest('.veil'));
@@ -1664,6 +2038,8 @@ function padMove(dx, dy) {
   if (best) { best.focus(); best.scrollIntoView({block: 'nearest', inline: 'nearest'}); }
 }
 function padBack() {
+  if ($('teamRosterDialog').open) return $('teamRosterDialog').close();
+  if ($('modTeamsDialog').open) return $('modTeamsDialog').close();
   const dd = document.querySelector('.dd.open'); if (dd) { dd.classList.remove('open'); dd.querySelector('.dd-btn').focus(); return; }
   if (!$('inviteCard').hidden) return $('invNo').click();
   if (!$('passAsk').classList.contains('gone')) return closePassword();
