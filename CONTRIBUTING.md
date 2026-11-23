@@ -9,3 +9,5 @@ Do not submit ISOs, XEX files, extracted game archives, generated guest code or 
 For reports, include the installer version, Windows version, CPU, GPU, driver, game region/build, the steps to reproduce and the relevant text log. Screenshots should be genuine captures from this project. Remove private paths or other personal information before posting if desired.
 
 Original project contributions are accepted under MIT. Changes to third-party or derived SDK code must preserve the applicable upstream notices and licenses.
+
+Use the same language order in the README and release notes. Put English first, Portuguese second, and Spanish last.

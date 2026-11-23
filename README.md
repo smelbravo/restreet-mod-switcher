@@ -1,6 +1,6 @@
 # ReStreet Mod Switcher
 
-[English](#english) · [Português de Portugal](#português-de-portugal)
+[English](#english) · [Português de Portugal](#português-de-portugal) · [Español](#español)
 
 [Mod Switcher Discord / Discord do Mod Switcher](https://discord.gg/6S6dftU3ww) · [ReStreet on Thunderstore / ReStreet no Thunderstore](https://thunderstore.io/c/restreet/)
 
@@ -88,9 +88,54 @@ O launcher inclui uma interface em português de Portugal. A opção PT-PT dentr
 
 Na v0.2.0, seleciona **Vanilla** e abre **Online** para definires o teu nick e a região. Liga **Jogar online**. Os dois jogadores devem escolher a mesma região. Um cria a sala em **Partidas**, escolhe **5 contra 5**, **6 contra 6** ou **Futsal** e pode definir uma palavra-passe. Cada jogador controla uma equipa. Os amigos e as classificações estão associados ao nick e à região. [Guia do jogador do ReStreet](https://samuelit0davila.github.io/fifa-street-pc-port/assets/guides/ReStreet-Guide-PT.pdf)
 
-## Credits and licence / Créditos e licença
+## Español
+
+ReStreet Mod Switcher es un fork para Windows del launcher de ReStreet, la adaptación de FIFA Street (2012) para PC. La pestaña **Mods** permite alternar entre **Vanilla**, **FIFA Street Classic** y **FIFA Street 2026**. Cada mod se ejecuta sin conexión y tiene su propia carpeta de juego y sus propias partidas guardadas de World Tour. Haz clic en una tarjeta para seleccionar el perfil o haz doble clic para abrir su galería. [ReStreet de SamuelitoDaVila](https://github.com/samuelit0davila/fifa-street-pc-port)
+
+### Instalar desde GitHub Releases
+
+1. Descarga **ReStreet-Mod-Switcher-Setup.exe**. [Versiones para Windows](https://github.com/smelbravo/restreet-mod-switcher/releases)
+2. Ejecuta el instalador v0.2.0, elige una carpeta de destino vacía y selecciona tu propia ISO de FIFA Street (2012) para Xbox 360. Se necesita conexión a Internet. El instalador descarga ReStreet 2.1.5, verifica el SHA-256, instala el juego base desde tu ISO y añade el launcher de Mod Switcher. [Versión original de ReStreet 2.1.5](https://github.com/samuelit0davila/fifa-street-pc-port/releases/tag/v2.1.5-online-beta)
+3. Abre `FifaStreetLauncher.exe` en la carpeta de instalación y prueba **Vanilla**. La interfaz de Mods requiere Windows de 64 bits y WebView2. Haz una copia de seguridad de `Documentos\fifastreet` antes de instalar mods.
+
+Para compilar el instalador desde el código fuente en Windows, ejecuta `./Installer/BuildSwitcherSetup.ps1 -Output ./dist/ReStreet-Mod-Switcher-Setup.exe` con el SDK de .NET 8.
+
+### Actualizar una instalación existente
+
+Para actualizar una versión anterior, incluida la v0.2.0 anterior, cierra el juego y el launcher y selecciona la carpeta actual de Mod Switcher en el instalador v0.2.0. La actualización conserva los archivos del juego y de los mods, los ajustes y las carpetas de guardado de World Tour. Con esta versión, el launcher puede avisarte cuando haya una actualización de Mod Switcher con un instalador verificable.
+
+### Encontrar mods en Thunderstore
+
+Abre **Mods → Thunderstore** para consultar el catálogo de la comunidad. **Ver paquete** abre la página del autor con sus instrucciones y **Descargar ZIP** inicia la descarga en el navegador. Sigue las instrucciones del autor para instalar el paquete. [Comunidad de ReStreet en Thunderstore](https://thunderstore.io/c/restreet/)
+
+En la v0.2.0, usa **Seleccionar carpeta Game de este paquete** después de instalarlo en una carpeta `Game` separada. Encontrarás el perfil en **Perfiles de Thunderstore** y tendrá sus propias partidas guardadas. Abre el catálogo de equipos desde **Mods** o **Partidas** y haz clic en un escudo para consultar la plantilla, las posiciones y los atributos de los jugadores. La plantilla de World Tour se lee de la partida guardada del perfil activo cuando se puede identificar.
+
+### Instalar los perfiles manuales
+
+1. Haz dos copias independientes de la carpeta `Game` limpia, una en `Mods\Classic\Game` y otra en `Mods\2026\Game`. Cada copia debe contener `default.xex` y `data0.big` directamente en su carpeta `Game`.
+2. **Classic.** Descarga y extrae el ZIP. Ejecuta el instalador del parche y usa **Examinar** para seleccionar `Mods\Classic\Game` antes de instalar. [Descargar ZIP](https://sharemods.com/8i7py52glnt4/FIFAStreetClassic.zip.html) · [Publicación del autor](https://www.patreon.com/biavva/posts/patch-fifa-beta-173393762)
+3. **2026.** Descarga el ZIP y extrae la carpeta que contiene el instalador en `Mods\2026`, al lado de `Game`. El instalador puede mover partidas guardadas anteriores. Si el script `instalar.ps1` admite `FS_DOCS`, abre PowerShell en la carpeta que has extraído y ejecuta lo siguiente.
+
+   ```powershell
+   $env:FS_DOCS = Join-Path (Get-Location).Path 'InstallerDocuments'
+   try { & .\instalar.ps1 } finally { Remove-Item Env:FS_DOCS }
+   ```
+
+   Confirma que el instalador indica `Mods\2026\Game` como destino. Si el paquete usa otro instalador o no admite `FS_DOCS`, consulta sus instrucciones y guarda una copia de seguridad antes de instalar. [Descargar ZIP](https://drive.google.com/file/d/1XKbAZtVdSmj5AMh3z9BkJjzxTupsrrLO/view) · [Publicación del autor](https://x.com/Jespindola15_/status/2114894270738129390)
+4. Abre **Mods**, elige cada mod y usa **Seleccionar carpeta Game del mod** para indicar la ruta. Para cambiar de perfil, sal del juego, selecciona una tarjeta y pulsa **Jugar**. Es posible que un perfil nuevo te pida crear su propia partida guardada. Vanilla usa `Documentos\fifastreet` por defecto. Los mods guardan sus partidas en la subcarpeta `ModProfiles`.
+
+El launcher también incluye una interfaz en portugués de Portugal. La opción PT-PT dentro del juego necesita el archivo `locale_ptpt.big` en `Game\data\loc` del perfil elegido. Estos archivos del juego son externos al repositorio.
+
+### Partidas privadas en Vanilla
+
+En la v0.2.0, selecciona **Vanilla**, abre **Online**, configura tu nombre y región y activa **Jugar en línea**. Ambos jugadores deben elegir la misma región. Uno crea la sala en **Partidas**, elige **5 contra 5**, **6 contra 6** o **Futsal** y puede añadir una contraseña. Cada jugador controla un equipo. Los amigos y las clasificaciones están vinculados al nombre y a la región. [Guía de ReStreet en español](https://samuelit0davila.github.io/fifa-street-pc-port/assets/guides/ReStreet-Guide-ES.pdf)
+
+[Discord de Mod Switcher](https://discord.gg/6S6dftU3ww)
+
+## Credits and licence / Créditos e licença / Créditos y licencia
 
 - ReStreet port and original launcher / Port ReStreet e launcher original: **SamuelitoDaVila**. [Original repository / Repositório original](https://github.com/samuelit0davila/fifa-street-pc-port) · [Official website / Site oficial](https://samuelit0davila.github.io/fifa-street-pc-port/) · [Official Discord / Discord oficial](https://discord.gg/CqjYMGKyy2)
 - **FIFA Street Classic** by Giovani Biava and the Classic Patch contributors. [Mod page on Patreon](https://www.patreon.com/biavva/posts/patch-fifa-beta-173393762) · [Download](https://t.co/m5EXewDc84) · [Giovani Biava on X](https://x.com/giovanibiava)
 - **FIFA Street 2026** by Jespindola. [Mod download on Google Drive](https://drive.google.com/file/d/1XKbAZtVdSmj5AMh3z9BkJjzxTupsrrLO/view) · [Jespindola on X](https://x.com/Jespindola15_)
-- See / Consulta [CREDITS.md](CREDITS.md) and / e [LICENSE](LICENSE).
+- **Thunderstore** provides the mod catalogue and API / disponibiliza o catálogo de mods e a API / proporciona el catálogo de mods y la API. [ReStreet on Thunderstore](https://thunderstore.io/c/restreet/)
+- See / Consulta [CREDITS.md](CREDITS.md) · [LICENSE](LICENSE).
