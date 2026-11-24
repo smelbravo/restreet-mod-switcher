@@ -1278,8 +1278,14 @@ $('modTeamsDialog').addEventListener('close', () => {
 $('modTeamsSearch').oninput = renderModTeams;
 
 let thunderstoreRequested = false;
-const thunderstoreDownloads = new Map();
+let thunderstoreInstalling = false;
 let thunderstoreProfilesState = '';
+
+function setThunderstoreInstalling(busy) {
+  thunderstoreInstalling = busy;
+  $('thunderstoreRefresh').disabled = busy;
+  $('thunderstorePackages').querySelectorAll('[data-install-package]').forEach(button => { button.disabled = busy; });
+}
 
 function renderThunderstoreProfiles(profiles, selected, locked) {
   const state = JSON.stringify([profiles, selected, locked]);
@@ -1310,15 +1316,17 @@ function loadThunderstore() {
 
 function renderThunderstore(message) {
   const status = $('thunderstoreStatus');
+  if (message.type === 'thunderstoreInstall') {
+    setThunderstoreInstalling(message.busy);
+    status.textContent = message.note;
+    return;
+  }
   if (message.type === 'thunderstoreAction') {
-    const button = thunderstoreDownloads.get(message.id);
-    if (button) button.disabled = false;
-    thunderstoreDownloads.delete(message.id);
-    status.textContent = message.error ? 'Could not open Thunderstore. Try again.' : '';
+    if (!thunderstoreInstalling) status.textContent = message.error ? 'Could not open Thunderstore. Try again.' : '';
     return;
   }
 
-  $('thunderstoreRefresh').disabled = false;
+  $('thunderstoreRefresh').disabled = thunderstoreInstalling;
   if (message.error) {
     thunderstoreRequested = false;
     status.textContent = 'Could not load the Thunderstore catalog. Try again.';
@@ -1340,24 +1348,18 @@ function renderThunderstore(message) {
     page.className = 'btn';
     page.textContent = 'View package';
     page.onclick = () => send({cmd: 'thunderstorePage', id: mod.id});
-    const download = document.createElement('button');
-    download.type = 'button';
-    download.className = 'btn';
-    download.textContent = 'Download ZIP';
-    download.disabled = thunderstoreDownloads.has(mod.id);
-    if (download.disabled) thunderstoreDownloads.set(mod.id, download);
-    download.onclick = () => {
-      download.disabled = true;
-      thunderstoreDownloads.set(mod.id, download);
-      status.textContent = '';
-      send({cmd: 'thunderstoreDownload', id: mod.id});
+    const install = document.createElement('button');
+    install.type = 'button';
+    install.className = 'btn';
+    install.textContent = 'Install mod';
+    install.dataset.installPackage = mod.id;
+    install.disabled = thunderstoreInstalling;
+    install.onclick = () => {
+      setThunderstoreInstalling(true);
+      status.textContent = 'Downloading mod…';
+      send({cmd: 'thunderstoreInstall', id: mod.id});
     };
-    const register = document.createElement('button');
-    register.type = 'button';
-    register.className = 'btn';
-    register.textContent = 'Select Game folder for this package';
-    register.onclick = () => send({cmd: 'registerThunderstoreProfile', id: mod.id});
-    actions.append(page, download, register);
+    actions.append(install, page);
     row.append(title, description, actions);
     list.append(row);
   }
@@ -1419,6 +1421,7 @@ function render(s) {
     $('modDetails').hidden = !modded;
     $('downloadMod').hidden = !!s.modProfiles.communitySelected;
     $('modPreview').hidden = !!s.modProfiles.communitySelected;
+    $('browseMod').hidden = !!s.modProfiles.communitySelected;
     renderThunderstoreProfiles(s.modProfiles.community || [], s.modProfiles.selected, s.modProfiles.locked);
     $('browseMod').disabled = !modded || s.modProfiles.locked;
     $('modPath').textContent = modded ? s.modProfiles.path || 'No mod Game folder selected.' : '';

@@ -233,8 +233,7 @@ public partial class LauncherForm
                 return;
             case "closeModTeams": CloseModTeams(); return;
             case "thunderstorePage": OpenThunderstorePage(id); return;
-            case "thunderstoreDownload": _ = DownloadThunderstoreAsync(id); return;
-            case "registerThunderstoreProfile": RegisterThunderstoreProfile(id); break;
+            case "thunderstoreInstall": _ = InstallThunderstoreAsync(id); return;
             case "downloadMod" when UseMod && IsBuiltInMod:
             case "modPreview" when UseMod && IsBuiltInMod:
                 string url = (modProfile, cmd) switch

@@ -26,6 +26,7 @@ public partial class LauncherForm
 
     private Dictionary<string, ThunderstorePackage> thunderstorePackages = new();
     private bool thunderstoreLoading;
+    private bool thunderstoreInstalling;
 
     private sealed record ThunderstorePackage(string Namespace, string Name, string Description)
     {
@@ -99,33 +100,148 @@ public partial class LauncherForm
         }
     }
 
-    private async Task DownloadThunderstoreAsync(string id)
+    private async Task InstallThunderstoreAsync(string id)
     {
-        if (!thunderstorePackages.ContainsKey(id)) return;
+        if (thunderstoreInstalling || !thunderstorePackages.TryGetValue(id, out var package)) return;
+        if (launchingGame || AnyGameRunning())
+        {
+            ReportThunderstoreInstall(id, "Close the game before installing a mod.", true);
+            return;
+        }
+        thunderstoreInstalling = true;
+        string? staging = null;
+        string? publishedGame = null;
         try
         {
+            ReportThunderstoreInstall(id, "Downloading mod…", busy: true);
             var detailsUrl = new Uri(ThunderstoreCommunity, $"/api/experimental/package/{id}/");
             var details = await ThunderstoreHttp.GetFromJsonAsync<ThunderstoreDetails>(detailsUrl);
             if (details?.Latest?.Number is not { } version || !VersionSegment.IsMatch(version))
                 throw new JsonException("Missing Thunderstore package version.");
 
-            OpenThunderstoreUrl(new Uri(ThunderstoreCommunity, $"/package/download/{id}/{version}/"));
-            PostToPage(new { type = "thunderstoreAction", id });
+            var profile = new ThunderstoreModProfile(package.Namespace, package.Name, "") { Version = version };
+            var previous = communityProfiles.GetValueOrDefault(profile.Id);
+            string vanilla = gamePathBox.Text.Trim();
+            if (!HasModGameFiles(vanilla))
+            {
+                ReportThunderstoreInstall(id, "Set up the Vanilla game before installing a mod.", true);
+                return;
+            }
+            if (previous?.Version == version && HasModGameFiles(previous.GamePath))
+            {
+                SelectModProfile(previous.Id);
+                PushGlassState(true);
+                ReportThunderstoreInstall(id, "This version of the mod is already installed.");
+                return;
+            }
+
+            string installRoot = Path.Combine(AppContext.BaseDirectory, "Mods", "Thunderstore");
+            Directory.CreateDirectory(installRoot);
+            using var installLock = new FileStream(Path.Combine(installRoot, ".install.lock"), FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
+            string token = Guid.NewGuid().ToString("N");
+            staging = Path.Combine(installRoot, ".install-" + token);
+            Directory.CreateDirectory(staging);
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(45));
+            var archives = await DownloadThunderstoreArchivesAsync(id, version, staging, timeout.Token);
+            ReportThunderstoreInstall(id, "Creating the mod’s Game folder…", busy: true);
+            string game = Path.Combine(staging, "Game");
+            await Task.Run(() => ThunderstoreGameInstall.PrepareGame(vanilla, game, archives, timeout.Token), timeout.Token);
+
+            if (launchingGame || AnyGameRunning())
+            {
+                ReportThunderstoreInstall(id, "Close the game before installing a mod.", true);
+                return;
+            }
+            string baseName = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+                System.Text.Encoding.UTF8.GetBytes(profile.Id.ToLowerInvariant())))[..16];
+            publishedGame = Path.Combine(installRoot, baseName + "-" + version + "-" + token);
+            Directory.CreateDirectory(publishedGame);
+            string destination = Path.Combine(publishedGame, "Game");
+            Directory.Move(game, destination);
+            if (!SetCommunityProfile(profile with { GamePath = destination }))
+                throw new IOException("Could not save the installed profile.");
+            publishedGame = null;
+            PushGlassState(true);
+            ReportThunderstoreInstall(id, "Mod installed and selected.");
         }
-        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException or NotSupportedException or Win32Exception)
+        catch (ThunderstoreGameInstall.UnsupportedPackageException)
+        {
+            ReportThunderstoreInstall(id, "This package uses a format that cannot be installed automatically.", true);
+        }
+        catch (ThunderstoreDataPatch.IncompatibleBaseException)
+        {
+            ReportThunderstoreInstall(id, "This mod needs a different version of the Vanilla game files.", true);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException or
+            NotSupportedException or IOException or InvalidDataException or UnauthorizedAccessException)
         {
             Debug.WriteLine(ex);
-            PostToPage(new { type = "thunderstoreAction", id, error = true });
+            ReportThunderstoreInstall(id, "Could not install the mod. Check the connection and available disk space, then try again.", true);
+        }
+        finally
+        {
+            RemoveIncompleteThunderstoreInstall(staging);
+            RemoveIncompleteThunderstoreInstall(publishedGame);
+            thunderstoreInstalling = false;
         }
     }
 
-    private void RegisterThunderstoreProfile(string id)
+    private async Task<List<ThunderstoreGameInstall.Archive>> DownloadThunderstoreArchivesAsync(
+        string id, string version, string staging, CancellationToken cancellation)
     {
-        if (launchingGame || AnyGameRunning() || !thunderstorePackages.TryGetValue(id, out var package)) return;
-        var profile = new ThunderstoreModProfile(package.Namespace, package.Name, "");
-        string current = communityProfiles.GetValueOrDefault(profile.Id)?.GamePath ?? "";
-        string? selected = PickModGameFolder(profile.Id, current);
-        if (selected != null) SetCommunityProfile(profile with { GamePath = selected });
+        var packages = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var active = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var result = new List<ThunderstoreGameInstall.Archive>();
+        await Visit(id, version);
+        return result;
+
+        async Task Visit(string package, string release)
+        {
+            if (active.Contains(package)) throw new InvalidDataException("Circular Thunderstore dependencies.");
+            if (packages.TryGetValue(package, out var pinned))
+            {
+                if (pinned != release) throw new InvalidDataException("Conflicting Thunderstore dependencies.");
+                return;
+            }
+            if (packages.Count >= 32 || !thunderstorePackages.ContainsKey(package))
+                throw new ThunderstoreGameInstall.UnsupportedPackageException();
+            active.Add(package);
+            packages.Add(package, release);
+            string zip = Path.Combine(staging, $"package-{packages.Count}.zip");
+            var url = new Uri(ThunderstoreCommunity, $"/package/download/{package}/{release}/");
+            using (var response = await ThunderstoreHttp.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellation))
+            {
+                response.EnsureSuccessStatusCode();
+                var final = response.RequestMessage?.RequestUri;
+                if (final?.Scheme != Uri.UriSchemeHttps || !(final.Host == "thunderstore.io" ||
+                    final.Host.EndsWith(".thunderstore.io", StringComparison.OrdinalIgnoreCase)))
+                    throw new InvalidDataException("The download did not come from Thunderstore.");
+                await using var contents = await response.Content.ReadAsStreamAsync(cancellation);
+                await using var file = new FileStream(zip, FileMode.CreateNew, FileAccess.Write, FileShare.None, 65536, useAsync: true);
+                await contents.CopyToAsync(file, cancellation);
+            }
+            var archive = ThunderstoreGameInstall.Inspect(zip);
+            foreach (var dependency in archive.Dependencies)
+            {
+                var parts = dependency?.Split('-');
+                if (parts?.Length != 3 || !PackageSegment.IsMatch(parts[0]) ||
+                    !PackageSegment.IsMatch(parts[1]) || !VersionSegment.IsMatch(parts[2]))
+                    throw new InvalidDataException("Invalid Thunderstore dependency.");
+                await Visit(parts[0] + "/" + parts[1], parts[2]);
+            }
+            result.Add(archive);
+            active.Remove(package);
+        }
+    }
+
+    private void ReportThunderstoreInstall(string id, string note, bool error = false, bool busy = false) =>
+        PostToPage(new { type = "thunderstoreInstall", id, note, error, busy });
+
+    private static void RemoveIncompleteThunderstoreInstall(string? path)
+    {
+        if (path == null) return;
+        try { Directory.Delete(path, recursive: true); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { Debug.WriteLine(ex); }
     }
 
     private static void OpenThunderstoreUrl(Uri url) =>

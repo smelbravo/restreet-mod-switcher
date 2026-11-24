@@ -6,6 +6,7 @@ namespace FifaStreetLauncher;
 public sealed record ThunderstoreModProfile(string Author, string Name, string GamePath)
 {
     internal string Id => "thunderstore:" + Author + "/" + Name;
+    public string? Version { get; init; }
 }
 
 public partial class LauncherForm
@@ -114,16 +115,17 @@ public partial class LauncherForm
         }
     }
 
-    private void SetCommunityProfile(ThunderstoreModProfile profile)
+    private bool SetCommunityProfile(ThunderstoreModProfile profile)
     {
         var previous = communityProfiles.GetValueOrDefault(profile.Id);
         string previousProfile = modProfile;
         communityProfiles[profile.Id] = profile;
         modProfile = profile.Id;
-        if (SaveModSettings()) return;
+        if (SaveModSettings()) return true;
         modProfile = previousProfile;
         if (previous == null) communityProfiles.Remove(profile.Id);
         else communityProfiles[profile.Id] = previous;
+        return false;
     }
 
     private string? PickModGameFolder(string profileId, string currentPath)

@@ -11,20 +11,20 @@ ReStreet Mod Switcher is a Windows launcher fork of [SamuelitoDaVila’s ReStree
 ### Install from GitHub Releases
 
 1. Download **ReStreet-Mod-Switcher-Setup.exe** from the [Windows releases](https://github.com/smelbravo/restreet-mod-switcher/releases).
-2. Run the v0.2.0 installer, choose an empty destination and select your own FIFA Street (2012) Xbox 360 ISO. An internet connection is required. Setup downloads [ReStreet 2.1.5](https://github.com/samuelit0davila/fifa-street-pc-port/releases/tag/v2.1.5-online-beta), checks its SHA-256, installs the base game from your ISO and adds the Mod Switcher launcher.
+2. Run the v0.2.1 installer, choose an empty destination and select your own FIFA Street (2012) Xbox 360 ISO. An internet connection is required. Setup downloads [ReStreet 2.1.5](https://github.com/samuelit0davila/fifa-street-pc-port/releases/tag/v2.1.5-online-beta), checks its SHA-256, installs the base game from your ISO and adds the Mod Switcher launcher.
 3. Open `FifaStreetLauncher.exe` in that folder and test **Vanilla**. Windows x64 and the WebView2 Runtime are required for the Mods interface. Back up `Documents\fifastreet` before installing mods.
 
 To build the installer from source, run `./Installer/BuildSwitcherSetup.ps1 -Output ./dist/ReStreet-Mod-Switcher-Setup.exe` with the .NET 8 SDK on Windows.
 
 ### Update an existing installation
 
-To update from an earlier build, including the previous v0.2.0, close the game and launcher, then select your existing Mod Switcher folder in the v0.2.0 installer. The update keeps your game and mod files, settings and World Tour save locations. With this build, the launcher can offer future Mod Switcher releases with a verified installer.
+To update from an earlier build, including the previous v0.2.0, close the game and launcher, then select your existing Mod Switcher folder in the v0.2.1 installer. The update keeps your game and mod files, settings and World Tour save locations. With this build, the launcher can offer future Mod Switcher releases with a verified installer.
 
 ### Find mods on Thunderstore
 
 Open **Mods → Thunderstore** to browse the ReStreet community. **View package** opens the author’s page and installation instructions. **Download ZIP** starts the download in your browser. Follow the author’s instructions to install the package.
 
-In v0.2.0, use **Select Game folder for this package** after installing the package in a separate `Game` folder. Its profile is available under **Thunderstore profiles** and has its own saves. Open the team catalogue from **Mods** or **Matches** and click a team crest to see the squad, positions, and player attributes. The World Tour squad is read from the active profile's save when it can be identified.
+In **v0.2.1**, click **Install mod**. The launcher copies Vanilla into the mod’s own `Game` folder and installs the package there. Its World Tour saves are kept separately. Open the team catalogue from **Mods** or **Matches** and click a crest to see the squad, positions and attributes.
 
 ### Install the manual profiles
 
@@ -53,20 +53,20 @@ O ReStreet Mod Switcher é um fork para Windows do [ReStreet de SamuelitoDaVila]
 ### Instalar a partir das Releases do GitHub
 
 1. Descarrega **ReStreet-Mod-Switcher-Setup.exe** das [releases para Windows](https://github.com/smelbravo/restreet-mod-switcher/releases).
-2. Abre o instalador v0.2.0, escolhe uma pasta de destino vazia e seleciona o teu ISO de FIFA Street (2012) para Xbox 360. É necessária ligação à Internet. O instalador descarrega o [ReStreet 2.1.5](https://github.com/samuelit0davila/fifa-street-pc-port/releases/tag/v2.1.5-online-beta), verifica o SHA-256, instala o jogo a partir do teu ISO e acrescenta o launcher do Mod Switcher.
+2. Abre o instalador v0.2.1, escolhe uma pasta de destino vazia e seleciona o teu ISO de FIFA Street (2012) para Xbox 360. É necessária ligação à Internet. O instalador descarrega o [ReStreet 2.1.5](https://github.com/samuelit0davila/fifa-street-pc-port/releases/tag/v2.1.5-online-beta), verifica o SHA-256, instala o jogo a partir do teu ISO e acrescenta o launcher do Mod Switcher.
 3. Abre `FifaStreetLauncher.exe` nessa pasta e testa o **Vanilla**. A interface Mods requer Windows x64 e WebView2 Runtime. Faz uma cópia de segurança de `Documentos\fifastreet` antes de instalares os mods.
 
 Para compilar o instalador a partir do código, executa `./Installer/BuildSwitcherSetup.ps1 -Output ./dist/ReStreet-Mod-Switcher-Setup.exe` no Windows com o SDK do .NET 8.
 
 ### Atualizar uma instalação existente
 
-Para atualizares uma build anterior, incluindo a v0.2.0 antiga, fecha o jogo e o launcher e seleciona a pasta atual do Mod Switcher no instalador v0.2.0. A atualização mantém os ficheiros do jogo e dos mods, as definições e as pastas de gravação do Tour Mundial. Com esta build, o launcher pode avisar quando sair uma nova versão do Mod Switcher com um instalador verificável.
+Para atualizares uma build anterior, incluindo a v0.2.0 antiga, fecha o jogo e o launcher e seleciona a pasta atual do Mod Switcher no instalador v0.2.1. A atualização mantém os ficheiros do jogo e dos mods, as definições e as pastas de gravação do Tour Mundial. Com esta build, o launcher pode avisar quando sair uma nova versão do Mod Switcher com um instalador verificável.
 
 ### Encontrar mods no Thunderstore
 
 Abre **Mods → Thunderstore** para consultar a comunidade ReStreet. **Ver pacote** abre a página e as instruções do autor. **Descarregar ZIP** inicia a transferência no navegador. Segue as instruções do autor para instalar o pacote.
 
-Na v0.2.0, usa **Selecionar pasta Game deste pacote** depois de o instalares numa pasta `Game` separada. O perfil fica disponível em **Perfis do Thunderstore** e tem os seus próprios saves. Abre o catálogo de equipas em **Mods** ou **Partidas** e clica num emblema para veres o plantel, as posições e os atributos dos jogadores. O plantel do Tour Mundial é lido do save do perfil ativo quando é possível identificá-lo.
+Na **v0.2.1**, clica em **Instalar mod**. O launcher copia o Vanilla para a pasta `Game` do mod e instala aí o pacote. Os saves do Tour Mundial ficam separados. Abre o catálogo em **Mods** ou **Partidas** e clica num emblema para ver o plantel, as posições e os atributos.
 
 ### Instalar os perfis manuais
 
@@ -95,20 +95,20 @@ ReStreet Mod Switcher es un fork para Windows del launcher de ReStreet, la adapt
 ### Instalar desde GitHub Releases
 
 1. Descarga **ReStreet-Mod-Switcher-Setup.exe**. [Versiones para Windows](https://github.com/smelbravo/restreet-mod-switcher/releases)
-2. Ejecuta el instalador v0.2.0, elige una carpeta de destino vacía y selecciona tu propia ISO de FIFA Street (2012) para Xbox 360. Se necesita conexión a Internet. El instalador descarga ReStreet 2.1.5, verifica el SHA-256, instala el juego base desde tu ISO y añade el launcher de Mod Switcher. [Versión original de ReStreet 2.1.5](https://github.com/samuelit0davila/fifa-street-pc-port/releases/tag/v2.1.5-online-beta)
+2. Ejecuta el instalador v0.2.1, elige una carpeta de destino vacía y selecciona tu propia ISO de FIFA Street (2012) para Xbox 360. Se necesita conexión a Internet. El instalador descarga ReStreet 2.1.5, verifica el SHA-256, instala el juego base desde tu ISO y añade el launcher de Mod Switcher. [Versión original de ReStreet 2.1.5](https://github.com/samuelit0davila/fifa-street-pc-port/releases/tag/v2.1.5-online-beta)
 3. Abre `FifaStreetLauncher.exe` en la carpeta de instalación y prueba **Vanilla**. La interfaz de Mods requiere Windows de 64 bits y WebView2. Haz una copia de seguridad de `Documentos\fifastreet` antes de instalar mods.
 
 Para compilar el instalador desde el código fuente en Windows, ejecuta `./Installer/BuildSwitcherSetup.ps1 -Output ./dist/ReStreet-Mod-Switcher-Setup.exe` con el SDK de .NET 8.
 
 ### Actualizar una instalación existente
 
-Para actualizar una versión anterior, incluida la v0.2.0 anterior, cierra el juego y el launcher y selecciona la carpeta actual de Mod Switcher en el instalador v0.2.0. La actualización conserva los archivos del juego y de los mods, los ajustes y las carpetas de guardado de World Tour. Con esta versión, el launcher puede avisarte cuando haya una actualización de Mod Switcher con un instalador verificable.
+Para actualizar una versión anterior, incluida la v0.2.0 anterior, cierra el juego y el launcher y selecciona la carpeta actual de Mod Switcher en el instalador v0.2.1. La actualización conserva los archivos del juego y de los mods, los ajustes y las carpetas de guardado de World Tour. Con esta versión, el launcher puede avisarte cuando haya una actualización de Mod Switcher con un instalador verificable.
 
 ### Encontrar mods en Thunderstore
 
 Abre **Mods → Thunderstore** para consultar el catálogo de la comunidad. **Ver paquete** abre la página del autor con sus instrucciones y **Descargar ZIP** inicia la descarga en el navegador. Sigue las instrucciones del autor para instalar el paquete. [Comunidad de ReStreet en Thunderstore](https://thunderstore.io/c/restreet/)
 
-En la v0.2.0, usa **Seleccionar carpeta Game de este paquete** después de instalarlo en una carpeta `Game` separada. Encontrarás el perfil en **Perfiles de Thunderstore** y tendrá sus propias partidas guardadas. Abre el catálogo de equipos desde **Mods** o **Partidas** y haz clic en un escudo para consultar la plantilla, las posiciones y los atributos de los jugadores. La plantilla de World Tour se lee de la partida guardada del perfil activo cuando se puede identificar.
+En la **v0.2.1**, pulsa **Instalar mod**. El launcher copia el juego original en la carpeta `Game` del mod e instala allí el paquete. Las partidas de World Tour se guardan por separado. Abre el catálogo desde **Mods** o **Partidas** y pulsa un escudo para ver la plantilla, las posiciones y los atributos.
 
 ### Instalar los perfiles manuales
 

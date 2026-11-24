@@ -111,14 +111,14 @@ internal static partial class ModTeams
             for (int i = 0; i < table.Count; i++)
             {
                 ReadOnlySpan<byte> row = table.Record(i);
-                string? key = ReadLocaleString(strings, treeSize, ReadNumber(row, keyField), 1, 24);
+                string? key = GameLocaleStrings.Read(strings, treeSize, ReadNumber(row, keyField), 1, 24);
                 if (key == null) continue;
                 bool isTeam = key.StartsWith("TeamName_", StringComparison.Ordinal);
                 bool isLeague = key.StartsWith("LeagueName_", StringComparison.Ordinal);
                 if (!(isTeam || isLeague) ||
                     !int.TryParse(key.AsSpan(isTeam ? "TeamName_".Length : "LeagueName_".Length), NumberStyles.None, CultureInfo.InvariantCulture, out int id))
                     continue;
-                string? name = ReadLocaleString(strings, treeSize, ReadNumber(row, textField), 2, 256);
+                string? name = GameLocaleStrings.Read(strings, treeSize, ReadNumber(row, textField), 2, 256);
                 if (!string.IsNullOrWhiteSpace(name)) (isTeam ? names : leagues).TryAdd(id, name.Trim());
             }
         }
@@ -127,34 +127,6 @@ internal static partial class ModTeams
             // The team database still provides names if this language is unavailable or invalid.
         }
         return (names, leagues);
-    }
-
-    private static string? ReadLocaleString(ReadOnlySpan<byte> strings, int treeSize, int offset, int lengthBytes, int maxLength)
-    {
-        if (offset < treeSize || offset > strings.Length - lengthBytes) return null;
-        int count = lengthBytes == 1 ? strings[offset] : Big16(strings[offset..]);
-        if (count == 0 || count > maxLength) return null;
-
-        Span<byte> decoded = stackalloc byte[count];
-        int node = 0;
-        int written = 0;
-        // Each branch is a pair of bytes. A nonzero first byte is a node index.
-        // A zero first byte marks a leaf whose second byte is a character.
-        for (int pos = offset + lengthBytes; pos < strings.Length; pos++)
-        {
-            for (int bit = 7; bit >= 0; bit--)
-            {
-                int edge = node * 4 + ((strings[pos] >> bit) & 1) * 2;
-                if (edge >= treeSize - 1) return null;
-                node = strings[edge];
-                if (node != 0) continue;
-                decoded[written++] = strings[edge + 1];
-                if (written == count) return Encoding.UTF8.GetString(decoded);
-            }
-            // A valid byte-valued Huffman tree has at most 255 branches per symbol.
-            if (pos - offset > count * 32 + lengthBytes) return null;
-        }
-        return null;
     }
 
     private static XElement ReadSchema(byte[] metadata, string table)

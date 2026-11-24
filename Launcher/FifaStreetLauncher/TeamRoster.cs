@@ -122,6 +122,6 @@ internal static partial class ModTeams
 
     private static string ReadRosterString(Table table, ReadOnlySpan<byte> row, Field field, int treeSize) =>
         field.Kind is 13 or 14
-            ? (treeSize == 0 ? "" : ReadLocaleString(table.Strings, treeSize, ReadNumber(row, field), field.Kind == 13 ? 1 : 2, 256) ?? "")
+            ? (treeSize == 0 ? "" : GameLocaleStrings.Read(table.Strings, treeSize, ReadNumber(row, field), field.Kind == 13 ? 1 : 2, 256) ?? "")
             : ReadInlineString(row, field);
 }
