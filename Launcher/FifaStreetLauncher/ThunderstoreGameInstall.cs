@@ -10,7 +10,7 @@ internal static class ThunderstoreGameInstall
     private const string PatchPrefix = "restreet-patches/";
     private const string LocalizationFile = "restreet-localization.json";
     private static readonly Regex ArchiveFile = new(@"\Adata[0-7]\.(big|bh)\z", RegexOptions.IgnoreCase);
-    private static readonly Regex PatchTarget = new(@"\A(data[0-7]\.bh|data/ui/imgassets/heads/2dheads\.bh)\z", RegexOptions.IgnoreCase);
+    private static readonly Regex PatchTarget = new(@"\A(data[0-7]\.(big|bh)|data/loc/locale\.big|data/ui/imgassets/heads/2dheads\.(big|bh))\z", RegexOptions.IgnoreCase);
     private static readonly Regex DeviceName = new(@"\A(CON|PRN|AUX|NUL|COM[0-9¹²³]|LPT[0-9¹²³])(?:\.|\z)", RegexOptions.IgnoreCase);
     private static readonly HashSet<string> MetadataFiles = new(StringComparer.OrdinalIgnoreCase)
         { "manifest.json", "icon.png", "README.md", "CHANGELOG.md", "LICENSE", "LICENSE.md", "LICENSE.txt" };

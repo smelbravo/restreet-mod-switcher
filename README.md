@@ -26,6 +26,8 @@ Open **Mods → Thunderstore** to browse the ReStreet community. **View package*
 
 In **v0.2.1**, click **Install mod**. The launcher copies Vanilla into the mod’s own `Game` folder and installs the package there. Its World Tour saves are kept separately. Open the team catalogue from **Mods** or **Matches** and click a crest to see the squad, positions and attributes.
 
+Mod authors can follow the [Thunderstore packaging guide](docs/THUNDERSTORE-PACKAGING.md).
+
 ### Install the manual profiles
 
 1. In the new installation, make two independent copies of the clean `Game` folder at `Mods\Classic\Game` and `Mods\2026\Game`. Each copy should directly contain `default.xex` and `data0.big`.
@@ -68,6 +70,8 @@ Abre **Mods → Thunderstore** para consultar a comunidade ReStreet. **Ver pacot
 
 Na **v0.2.1**, clica em **Instalar mod**. O launcher copia o Vanilla para a pasta `Game` do mod e instala aí o pacote. Os saves do Tour Mundial ficam separados. Abre o catálogo em **Mods** ou **Partidas** e clica num emblema para ver o plantel, as posições e os atributos.
 
+Os autores de mods podem seguir o [tutorial de publicação no Thunderstore](docs/THUNDERSTORE-PACKAGING.md).
+
 ### Instalar os perfis manuais
 
 1. Na nova instalação, faz duas cópias independentes da pasta `Game` limpa em `Mods\Classic\Game` e `Mods\2026\Game`. Cada cópia deve conter diretamente `default.xex` e `data0.big`.
@@ -109,6 +113,8 @@ Para actualizar una versión anterior, incluida la v0.2.0 anterior, cierra el ju
 Abre **Mods → Thunderstore** para consultar el catálogo de la comunidad. **Ver paquete** abre la página del autor con sus instrucciones y **Descargar ZIP** inicia la descarga en el navegador. Sigue las instrucciones del autor para instalar el paquete. [Comunidad de ReStreet en Thunderstore](https://thunderstore.io/c/restreet/)
 
 En la **v0.2.1**, pulsa **Instalar mod**. El launcher copia el juego original en la carpeta `Game` del mod e instala allí el paquete. Las partidas de World Tour se guardan por separado. Abre el catálogo desde **Mods** o **Partidas** y pulsa un escudo para ver la plantilla, las posiciones y los atributos.
+
+Los autores de mods pueden seguir la [guía de publicación en Thunderstore](docs/THUNDERSTORE-PACKAGING.md).
 
 ### Instalar los perfiles manuales
 
