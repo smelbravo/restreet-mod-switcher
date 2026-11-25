@@ -3,13 +3,16 @@
 import json
 import os
 import re
+from datetime import datetime
 from pathlib import Path
 from urllib.error import HTTPError, URLError
+from urllib.parse import urljoin, urlsplit
 from urllib.request import Request, urlopen
 
 
 COMMUNITY = "https://thunderstore.io/c/restreet/"
-CATALOGUE = COMMUNITY + "api/v1/package/"
+API = "https://thunderstore.io/api/cyberstorm/"
+CATALOGUE = API + "listing/restreet/"
 STATE = Path(".thunderstore-feed-state.json")
 SEGMENT = re.compile(r"[A-Za-z0-9_]+")
 VERSION = re.compile(r"[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9.+-]+)?")
@@ -18,26 +21,50 @@ WEBHOOK_URL = re.compile(
 )
 
 
-def read_catalogue():
-    request = Request(CATALOGUE, headers={
+def read_json(url):
+    request = Request(url, headers={
         "Accept": "application/json",
         "User-Agent": "ReStreet-Mod-Switcher-Discord-Feed",
     })
     with urlopen(request, timeout=30) as response:
-        packages = json.load(response)
-    if not isinstance(packages, list):
-        raise ValueError("Expected a list of ReStreet packages.")
+        return json.load(response)
+
+
+def read_catalogue():
+    packages = set()
+    visited = set()
+    endpoint = urlsplit(CATALOGUE)
+    page_url = CATALOGUE
+    while page_url:
+        if urlsplit(page_url)._replace(query="") != endpoint or page_url in visited:
+            raise ValueError("Invalid Thunderstore catalogue pagination URL.")
+        visited.add(page_url)
+        page = read_json(page_url)
+        results = page["results"]
+        if not isinstance(results, list):
+            raise ValueError("Expected a list of ReStreet packages.")
+        for package in results:
+            owner, name = package["namespace"], package["name"]
+            if not SEGMENT.fullmatch(owner) or not SEGMENT.fullmatch(name):
+                raise ValueError("Unexpected Thunderstore package identifier.")
+            packages.add((owner, name))
+        page_url = urljoin(page_url, page["next"]) if page["next"] else None
 
     releases = []
-    for package in packages:
-        owner, name = package["owner"], package["name"]
-        if not SEGMENT.fullmatch(owner) or not SEGMENT.fullmatch(name):
-            raise ValueError("Unexpected Thunderstore package identifier.")
-        for version in package["versions"]:
+    for owner, name in sorted(packages):
+        versions = read_json(f"{API}package/{owner}/{name}/versions/")
+        if not isinstance(versions, list):
+            raise ValueError("Expected a list of Thunderstore versions.")
+        history = []
+        for version in versions:
             number = version["version_number"]
             if not VERSION.fullmatch(number):
                 raise ValueError("Unexpected Thunderstore version number.")
-            releases.append((version["date_created"], owner, name, number))
+            created = datetime.fromisoformat(version["datetime_created"])
+            history.append((created, number))
+        for index, (created, number) in enumerate(sorted(history)):
+            releases.append((created, owner, name, number, index == 0))
+    print(f"Thunderstore catalogue: {len(packages)} mod(s), {len(releases)} version(s).")
     return sorted(releases)
 
 
@@ -49,8 +76,10 @@ def post(webhook, **message):
     })
     try:
         with urlopen(request, timeout=30) as response:
-            if not json.load(response).get("id"):
+            message_id = json.load(response).get("id")
+            if not message_id:
                 raise ValueError("Discord did not confirm message delivery.")
+            return message_id
     except HTTPError as error:
         raise RuntimeError(f"Discord returned HTTP {error.code}.") from None
     except (URLError, TimeoutError):
@@ -70,7 +99,7 @@ def check_feed(webhook, mode):
     if not STATE.exists():
         # Set a baseline so enabling the feed never floods Discord with old releases.
         state = {}
-        for _, owner, name, number in releases:
+        for _, owner, name, number, _ in releases:
             state.setdefault(f"{owner}/{name}", set()).add(number)
         save_state(state)
         print(f"Initialised the feed with {len(releases)} existing version(s).")
@@ -83,19 +112,19 @@ def check_feed(webhook, mode):
         }
 
     if mode == "test":
-        post(webhook, content="Thunderstore · ReStreet · Teste do feed / Feed test / Prueba del feed")
+        post(webhook, content="Thunderstore · ReStreet · Feed test / Teste do feed / Prueba del feed")
         return
 
     posted = 0
-    for _, owner, name, number in releases:
+    for _, owner, name, number, first_release in releases:
         package = f"{owner}/{name}"
         announced = state.setdefault(package, set())
         if number in announced:
             continue
-        label = "Mod atualizado / Mod updated / Mod actualizado" if announced else (
-            "Novo mod / New mod / Nuevo mod"
+        label = "New mod / Novo mod / Nuevo mod" if first_release else (
+            "Mod updated / Mod atualizado / Mod actualizado"
         )
-        post(webhook, embeds=[{
+        message_id = post(webhook, embeds=[{
             "author": {"name": label},
             "title": f"{name.replace('_', ' ')} · {number}"[:256],
             "url": f"{COMMUNITY}p/{package}/",
@@ -105,6 +134,7 @@ def check_feed(webhook, mode):
         announced.add(number)
         save_state(state)
         posted += 1
+        print(f"Announced {package} {number} (Discord message {message_id}).")
     print(f"Posted {posted} new version(s).")
 
 
