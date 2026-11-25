@@ -21,10 +21,11 @@ public partial class LauncherForm
         modCatalog = null;
     }
 
-    private async Task LoadModTeamsAsync(string id)
+    private async Task LoadModTeamsAsync(string id, string? language)
     {
         CloseModTeams();
         string root = CatalogGamePath;
+        string? vanilla = UseMod ? gamePathBox.Text.Trim() : null;
         if (!IsCurrentModCatalog(root) || !HasModGameFiles(root))
         {
             PostToPage(new { type = "modTeams", id, error = true, missingFolder = true });
@@ -34,7 +35,7 @@ public partial class LauncherForm
         modCatalogRequest = request;
         try
         {
-            var teams = await Task.Run(() => ModTeams.ReadTeams(root), request.Token);
+            var teams = await Task.Run(() => ModTeams.ReadTeams(root, language, vanilla), request.Token);
             if (request.IsCancellationRequested || !IsCurrentModCatalog(root)) return;
             modCatalog = new(root, teams);
             PostToPage(new

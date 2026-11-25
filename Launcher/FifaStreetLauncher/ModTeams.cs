@@ -10,7 +10,7 @@ internal static partial class ModTeams
 {
     internal sealed record Team(int Id, int AssetId, string Name, string[] Groups);
 
-    internal static IReadOnlyList<Team> ReadTeams(string gameRoot)
+    internal static IReadOnlyList<Team> ReadTeams(string gameRoot, string? language = null, string? vanilla = null)
     {
         byte[] db = ModAssets.Read(gameRoot, "data/db/fifa_street_db.db", "data0.big")
             ?? throw new InvalidDataException("The game team database is missing.");
@@ -22,9 +22,15 @@ internal static partial class ModTeams
         var assetField = table.FindField(schema, "assetid");
         var nameField = table.FindField(schema, "teamname");
 
-        // An English locale is present on both supported profiles. The database name is a
-        // fallback for teams without a translated label or installs without that locale.
         var (labels, leagueLabels) = ReadLocaleNames(gameRoot);
+        if (GameLocaleStrings.GetFiles(language) != GameLocaleStrings.GetFiles("en"))
+        {
+            var (localizedTeams, localizedLeagues) = ReadLocaleNames(gameRoot, language);
+            var (stockTeams, stockLeagues) = vanilla == null ? (null, null) : ReadLocaleNames(vanilla, language);
+            var (stockEnglishTeams, stockEnglishLeagues) = vanilla == null ? (null, null) : ReadLocaleNames(vanilla);
+            PreferLocalizedNames(labels, localizedTeams, stockTeams, stockEnglishTeams);
+            PreferLocalizedNames(leagueLabels, localizedLeagues, stockLeagues, stockEnglishLeagues);
+        }
         var groups = ReadTeamGroups(db, metadata, leagueLabels);
         var teams = new Dictionary<int, Team>();
         for (int i = 0; i < table.Count; i++)
@@ -80,15 +86,29 @@ internal static partial class ModTeams
         }
     }
 
-    private static (Dictionary<int, string> Teams, Dictionary<int, string> Leagues) ReadLocaleNames(string gameRoot)
+    private static void PreferLocalizedNames(Dictionary<int, string> names, Dictionary<int, string> localized,
+        Dictionary<int, string>? stock, Dictionary<int, string>? stockEnglish)
+    {
+        foreach (var (id, name) in localized)
+        {
+            // An unmodified language file can still have Vanilla's name for an edited team.
+            if (stock?.GetValueOrDefault(id) == name && names.TryGetValue(id, out string? changed) &&
+                changed != stockEnglish?.GetValueOrDefault(id)) continue;
+            names[id] = name;
+        }
+    }
+
+    private static (Dictionary<int, string> Teams, Dictionary<int, string> Leagues) ReadLocaleNames(string gameRoot, string? language = null)
     {
         var names = new Dictionary<int, string>();
         var leagues = new Dictionary<int, string>();
         try
         {
-            const string archive = "data/loc/locale.big";
-            var db = ModAssets.Read(gameRoot, "data/loc/eng_us.db", archive);
-            var metadata = ModAssets.Read(gameRoot, "data/loc/eng_us-meta.xml", archive);
+            var locale = GameLocaleStrings.GetFiles(language);
+            string archive = "data/loc/" + locale.Archive;
+            string prefix = "data/loc/" + locale.Database;
+            var db = ModAssets.Read(gameRoot, prefix + ".db", archive);
+            var metadata = ModAssets.Read(gameRoot, prefix + "-meta.xml", archive);
             if (db == null || metadata == null) return (names, leagues);
 
             var schema = ReadSchema(metadata, "LanguageStrings");

@@ -214,7 +214,10 @@ public partial class LauncherForm
             case "state": if (pendingUpdate is { } pu) PostToPage(new { type = "update", version = pu.Version, notes = pu.Notes }); PushPerfHistory(); break;
             case "perfHistory": PushPerfHistory(); return;
             case "thunderstoreList": _ = LoadThunderstoreAsync(); return;
-            case "modTeams": _ = LoadModTeamsAsync(id); return;
+            case "modTeams":
+                _ = LoadModTeamsAsync(id, m.TryGetProperty("language", out var catalogLanguage) &&
+                    catalogLanguage.ValueKind == JsonValueKind.String ? catalogLanguage.GetString() : null);
+                return;
             case "teamRoster":
                 if (m.TryGetProperty("team", out var rosterTeam) && rosterTeam.ValueKind == JsonValueKind.Number &&
                     rosterTeam.TryGetInt32(out int rosterTeamId) && rosterTeamId >= 0)
@@ -233,6 +236,7 @@ public partial class LauncherForm
                 return;
             case "closeModTeams": CloseModTeams(); return;
             case "thunderstorePage": OpenThunderstorePage(id); return;
+            case "thunderstoreReadme": _ = LoadThunderstoreReadmeAsync(id); return;
             case "thunderstoreInstall": _ = InstallThunderstoreAsync(id); return;
             case "downloadMod" when UseMod && IsBuiltInMod:
             case "modPreview" when UseMod && IsBuiltInMod:

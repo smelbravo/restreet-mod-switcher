@@ -19,6 +19,14 @@
     "Could not load the Thunderstore catalog. Try again.": ["Não foi possível carregar o catálogo do Thunderstore. Tente novamente.", "No se pudo cargar el catálogo de Thunderstore. Inténtalo de nuevo.", "Impossible de charger le catalogue Thunderstore. Réessayez.", "Der Thunderstore-Katalog konnte nicht geladen werden. Versuche es erneut.", "Impossibile caricare il catalogo Thunderstore. Riprova."],
     "Could not open Thunderstore. Try again.": ["Não foi possível abrir o Thunderstore. Tente novamente.", "No se pudo abrir Thunderstore. Inténtalo de nuevo.", "Impossible d’ouvrir Thunderstore. Réessayez.", "Thunderstore konnte nicht geöffnet werden. Versuche es erneut.", "Impossibile aprire Thunderstore. Riprova."],
     "View package": ["Ver pacote", "Ver paquete", "Voir le paquet", "Paket ansehen", "Visualizza pacchetto"],
+    "Mod details": ["Detalhes do mod", "Detalles del mod", "Détails du mod", "Mod-Details", "Dettagli della mod"],
+    "Version": ["Versão", "Versión", "Version", "Version", "Versione"],
+    "Size": ["Tamanho", "Tamaño", "Taille", "Größe", "Dimensione"],
+    "Downloads": ["Downloads", "Descargas", "Téléchargements", "Downloads", "Download"],
+    "Last updated": ["Última atualização", "Última actualización", "Dernière mise à jour", "Zuletzt aktualisiert", "Ultimo aggiornamento"],
+    "Loading mod details…": ["A carregar os detalhes do mod…", "Cargando los detalles del mod…", "Chargement des détails du mod…", "Mod-Details werden geladen…", "Caricamento dei dettagli della mod…"],
+    "Could not load the full mod description.": ["Não foi possível carregar a descrição completa do mod.", "No se pudo cargar la descripción completa del mod.", "Impossible de charger la description complète du mod.", "Die vollständige Mod-Beschreibung konnte nicht geladen werden.", "Impossibile caricare la descrizione completa della mod."],
+    "This mod has no extra description.": ["Este mod não tem uma descrição adicional.", "Este mod no tiene una descripción adicional.", "Ce mod n’a pas de description supplémentaire.", "Diese Mod hat keine weitere Beschreibung.", "Questa mod non ha una descrizione aggiuntiva."],
     "Download ZIP": ["Baixar ZIP", "Descargar ZIP", "Télécharger le ZIP", "ZIP herunterladen", "Scarica ZIP"],
     "Install mod": ["Instalar mod", "Instalar mod", "Installer le mod", "Mod installieren", "Installa mod"],
     "Downloading mod…": ["A descarregar o mod…", "Descargando el mod…", "Téléchargement du mod…", "Mod wird heruntergeladen…", "Download del mod…"],
@@ -866,6 +874,7 @@
   // English source of each text node, so a later language change (or a text the page rewrites) starts from it.
   const source = new WeakMap(), shown = new WeakMap();
   function doText(node) {
+    if (node.parentElement?.closest('[translate="no"]')) return;
     const now = node.nodeValue;
     const en = shown.get(node) === now ? source.get(node) : now;
     const out = tr(en);

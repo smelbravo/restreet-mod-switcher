@@ -21,6 +21,25 @@ Use the matching archive and index from the same modded installation. Available 
 
 The patch records the original file's SHA-256. A player with a different base file will get an incompatibility message. If the resulting patch is nearly as large as the modified archive, check for unchanged stock data shifted to new offsets. Prefer loose files where possible, or preserve the existing asset offsets and append the modified data when repacking a numbered archive.
 
+### Localize in-game names
+
+Starting in Switcher v0.2.3, when a package updates `data/loc/locale.big`, the installer uses the mod's English labels for changed teams, leagues, trophies and balls whose labels still match Vanilla in another language. This also covers Brazilian Portuguese and European Portuguese when those archives are present. Labels already supplied for a language are kept.
+
+Add `restreet-localization.json` at the ZIP root to supply localized text by game string ID. Use `strings` for text shared across languages, such as club names, and `languages` for overrides. Supported language codes are `en`, `es`, `fr`, `de`, `it`, `pt-BR` and `pt-PT`. The installer merges the text into the player's language files. These overrides require Switcher v0.2.3 or later.
+
+~~~json
+{
+  "strings": { "TeamName_1000": "Example FC" },
+  "languages": {
+    "en": { "LeagueName_39": "Community Clubs" },
+    "es": { "LeagueName_39": "Clubes de la comunidad" },
+    "pt-PT": { "LeagueName_39": "Clubes da comunidade" }
+  }
+}
+~~~
+
+The flat format used by FIFA Street Classic, with string IDs and their values at the root, remains supported from v0.2.1. It applies the same labels across languages.
+
 ## 3. Add the Thunderstore metadata
 
 Use a 256 × 256 PNG for `icon.png`. Write `README.md` in UTF-8 and include the installation steps, required ReStreet and Switcher versions, mod credits and original links. Put `manifest.json`, `README.md` and `icon.png` at the ZIP root. A package can contain loose assets, archive patches or both.

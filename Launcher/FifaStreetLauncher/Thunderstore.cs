@@ -28,12 +28,23 @@ public partial class LauncherForm
     private bool thunderstoreLoading;
     private bool thunderstoreInstalling;
 
-    private sealed record ThunderstorePackage(string Namespace, string Name, string Description)
+    private sealed record ThunderstoreCategory(string Name);
+    private sealed record ThunderstorePackage(
+        string Namespace,
+        string Name,
+        string? Description,
+        [property: JsonPropertyName("icon_url")] string? IconUrl,
+        [property: JsonPropertyName("last_updated")] DateTimeOffset? LastUpdated,
+        [property: JsonPropertyName("download_count")] long? DownloadCount,
+        [property: JsonPropertyName("latest_version_number")] string? LatestVersion,
+        long? Size,
+        ThunderstoreCategory[]? Categories)
     {
         public string Id => Namespace + "/" + Name;
     }
 
     private sealed record ThunderstorePage(string? Next, ThunderstorePackage[] Results);
+    private sealed record ThunderstoreReadme(string? Markdown);
     private sealed record ThunderstoreDetails(ThunderstoreVersion Latest);
     private sealed record ThunderstoreVersion([property: JsonPropertyName("version_number")] string Number);
 
@@ -68,7 +79,18 @@ public partial class LauncherForm
             PostToPage(new
             {
                 type = "thunderstoreCatalog",
-                packages = packages.Values.Select(p => new { id = p.Id, author = p.Namespace, name = p.Name, description = p.Description })
+                packages = packages.Values.Select(p =>
+                {
+                    Uri? icon = ThunderstoreIcon(p.IconUrl);
+                    return new
+                    {
+                        id = p.Id, author = p.Namespace, name = p.Name, description = p.Description,
+                        icon = icon?.AbsoluteUri, version = ThunderstoreCatalogVersion(p, icon),
+                        updated = p.LastUpdated?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
+                        downloads = p.DownloadCount, size = p.Size,
+                        categories = p.Categories?.Select(category => category.Name)
+                    };
+                })
             });
         }
         catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException or UriFormatException or NotSupportedException)
@@ -79,6 +101,47 @@ public partial class LauncherForm
         finally
         {
             thunderstoreLoading = false;
+        }
+    }
+
+    private static Uri? ThunderstoreIcon(string? value) =>
+        Uri.TryCreate(value, UriKind.Absolute, out var url) && url.Scheme == Uri.UriSchemeHttps &&
+        url.IsDefaultPort && url.UserInfo.Length == 0 &&
+        (url.Host == "thunderstore.io" || url.Host.EndsWith(".thunderstore.io", StringComparison.OrdinalIgnoreCase))
+            ? url : null;
+
+    private static string? ThunderstoreCatalogVersion(ThunderstorePackage package, Uri? icon)
+    {
+        if (package.LatestVersion is { } latest && VersionSegment.IsMatch(latest)) return latest;
+        // The list response can omit the version number. Thunderstore's versioned icon uses
+        // the package's full name. Installation still resolves the version from the details API.
+        if (icon == null) return null;
+        string filename = Path.GetFileNameWithoutExtension(icon.AbsolutePath);
+        string prefix = $"{package.Namespace}-{package.Name}-";
+        if (!filename.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return null;
+        string version = filename[prefix.Length..];
+        return VersionSegment.IsMatch(version) ? version : null;
+    }
+
+    private async Task LoadThunderstoreReadmeAsync(string id)
+    {
+        if (!thunderstorePackages.ContainsKey(id)) return;
+        string? version = null;
+        try
+        {
+            var detailUrl = new Uri(ThunderstoreListing, id + "/");
+            var details = await ThunderstoreHttp.GetFromJsonAsync<ThunderstorePackage>(detailUrl);
+            version = details?.LatestVersion;
+            if (version == null || !VersionSegment.IsMatch(version))
+                throw new JsonException("Missing Thunderstore package version.");
+            var readmeUrl = new Uri(ThunderstoreCommunity, $"/api/experimental/package/{id}/{version}/readme/");
+            var readme = await ThunderstoreHttp.GetFromJsonAsync<ThunderstoreReadme>(readmeUrl);
+            PostToPage(new { type = "thunderstoreReadme", id, version, markdown = readme?.Markdown });
+        }
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException or NotSupportedException)
+        {
+            Debug.WriteLine(ex);
+            PostToPage(new { type = "thunderstoreReadme", id, version, error = true });
         }
     }
 

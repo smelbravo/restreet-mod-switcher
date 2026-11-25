@@ -401,8 +401,33 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 #thunderstoreStatus:empty{margin:0}
 .thunderstore-actions{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
 .thunderstore-head .thunderstore-actions{margin:0}
-.thunderstore-package{padding-top:12px;margin-top:12px;border-top:1px solid var(--seam)}
-.thunderstore-package p{margin:4px 0;overflow-wrap:anywhere}
+.thunderstore-package{display:grid;grid-template-columns:60px minmax(0,1fr) auto;gap:14px;align-items:center;margin-top:10px;padding:12px;background:var(--night);border:1px solid var(--seam);border-radius:9px}
+.thunderstore-summary{min-width:0;overflow-wrap:anywhere}
+.thunderstore-summary p{margin:4px 0}
+.thunderstore-author,.thunderstore-stats,.thunderstore-categories{color:var(--muted);font-size:12px}
+.thunderstore-author{margin-left:8px}
+.thunderstore-icon{position:relative;display:grid;place-items:center;width:60px;aspect-ratio:1;overflow:hidden;background:var(--panel-2);color:var(--brand);border:1px solid var(--seam-2);border-radius:8px;font:800 18px var(--display)}
+.thunderstore-icon img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.thunderstore-stats{display:flex;flex-wrap:wrap;gap:3px 13px;margin-top:6px}
+.thunderstore-stats div{display:flex;gap:4px}
+.thunderstore-stats dd{margin:0;color:var(--ink)}
+.thunderstore-package .thunderstore-actions{margin:0;justify-content:flex-end}
+.thunderstore-package button[data-install-package]{color:var(--night);background:var(--brand);border-color:var(--brand)}
+#thunderstoreDetail{width:min(760px,calc(100vw - 40px));max-height:85vh;margin:auto;padding:20px;background:var(--panel);color:var(--ink);border:1px solid var(--seam-2);border-radius:12px}
+#thunderstoreDetail[open]{display:flex;flex-direction:column;gap:12px;overflow:hidden}
+#thunderstoreDetail::backdrop{background:#000a}
+#thunderstoreDetailHeader{display:flex;gap:12px;align-items:center;min-width:0}
+#thunderstoreDetailHeader .thunderstore-author{margin-left:0}
+#thunderstoreDetailNote:empty{display:none}
+#thunderstoreDetailReadme{overflow:auto;min-height:0;overflow-wrap:anywhere;user-select:text}
+#thunderstoreDetailReadme > * + *{margin-top:8px}
+#thunderstoreDetailReadme pre{white-space:pre-wrap;background:var(--night);padding:8px;border-radius:6px}
+#thunderstoreDetailReadme code{font-family:var(--mono)}
+@media(max-width:850px){
+  .thunderstore-package{grid-template-columns:52px minmax(0,1fr)}
+  .thunderstore-package .thunderstore-icon{width:52px}
+  .thunderstore-package .thunderstore-actions{grid-column:2;justify-content:flex-start}
+}
 #modTeamsDialog{width:min(820px,calc(100vw - 40px));max-height:85vh;margin:auto;padding:20px;background:var(--panel);color:var(--ink);border:1px solid var(--seam-2);border-radius:12px}
 #modTeamsDialog[open]{display:flex;flex-direction:column;overflow:hidden}
 #modTeamsDialog > :not(#modTeamsGrid){flex-shrink:0}
@@ -729,6 +754,25 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
       <th scope="col">Defending</th><th scope="col">Athleticism</th><th scope="col">Goalkeeping</th></tr></thead>
       <tbody id="teamRosterPlayers"></tbody>
     </table>
+  </div>
+</dialog>
+<dialog id="thunderstoreDetail" aria-labelledby="thunderstoreDetailTitle">
+  <div class="mod-teams-header">
+    <div id="thunderstoreDetailHeader">
+      <div id="thunderstoreDetailIcon"></div>
+      <div class="thunderstore-summary">
+        <h3 id="thunderstoreDetailTitle" translate="no"></h3>
+        <p id="thunderstoreDetailAuthor" class="thunderstore-author" translate="no"></p>
+      </div>
+    </div>
+    <form method="dialog"><button class="btn" autofocus>Close</button></form>
+  </div>
+  <dl id="thunderstoreDetailStats" class="thunderstore-stats"></dl>
+  <p id="thunderstoreDetailCategories" class="thunderstore-categories" translate="no" hidden></p>
+  <p id="thunderstoreDetailNote" class="sub" role="status"></p>
+  <div id="thunderstoreDetailReadme" translate="no" tabindex="0"></div>
+  <div class="thunderstore-actions">
+    <button type="button" class="btn" id="thunderstoreDetailPage">Open Thunderstore</button>
   </div>
 </dialog>
 <div class="veil gone" id="perfAsk"><div class="toast"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div><b>Help make ReStreet faster</b>
@@ -1262,7 +1306,7 @@ function openModTeams() {
   $('modTeamsGroups').replaceChildren();
   $('modTeamsStatus').textContent = 'Loading mod teams…';
   $('modTeamsDialog').showModal();
-  send({cmd: 'modTeams', id: modTeamsOpenId});
+  send({cmd: 'modTeams', id: modTeamsOpenId, language: document.documentElement.lang});
 }
 $('browseModTeams').onclick = openModTeams;
 $('browseMatchModTeams').onclick = openModTeams;
@@ -1280,6 +1324,7 @@ $('modTeamsSearch').oninput = renderModTeams;
 let thunderstoreRequested = false;
 let thunderstoreInstalling = false;
 let thunderstoreProfilesState = '';
+let thunderstoreDetailPackage = null;
 
 function setThunderstoreInstalling(busy) {
   thunderstoreInstalling = busy;
@@ -1314,8 +1359,129 @@ function loadThunderstore() {
   send({cmd: 'thunderstoreList'});
 }
 
+function thunderstoreIcon(mod, eager = false) {
+  const icon = document.createElement('div');
+  icon.className = 'thunderstore-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = mod.name.replaceAll('_', ' ').slice(0, 2).toUpperCase();
+  if (mod.icon) {
+    const image = document.createElement('img');
+    image.alt = '';
+    image.loading = eager ? 'eager' : 'lazy';
+    image.referrerPolicy = 'no-referrer';
+    image.addEventListener('error', () => image.remove(), {once: true});
+    image.src = mod.icon;
+    icon.append(image);
+  }
+  return icon;
+}
+
+function thunderstoreStats(mod, element) {
+  const locale = document.documentElement.lang;
+  const number = new Intl.NumberFormat(locale);
+  const unit = mod.size >= 1024 ** 3 ? 3 : mod.size >= 1024 ** 2 ? 2 : mod.size >= 1024 ? 1 : 0;
+  const stats = [
+    ['Version', mod.version],
+    ['Size', Number.isFinite(mod.size) && mod.size >= 0 ? new Intl.NumberFormat(locale, {maximumFractionDigits: 1})
+      .format(mod.size / 1024 ** unit) + ' ' + ['B', 'KiB', 'MiB', 'GiB'][unit] : null],
+    ['Downloads', Number.isFinite(mod.downloads) && mod.downloads >= 0 ? number.format(mod.downloads) : null],
+    ['Last updated', mod.updated]
+  ];
+  const list = document.createDocumentFragment();
+  for (const [label, value] of stats) {
+    if (value == null || value === '') continue;
+    const group = document.createElement('div');
+    const title = document.createElement('dt');
+    const content = document.createElement('dd');
+    title.textContent = label;
+    content.textContent = value;
+    group.append(title, content);
+    list.append(group);
+  }
+  element.replaceChildren(list);
+}
+
+function showThunderstoreDetail(mod) {
+  thunderstoreDetailPackage = mod;
+  $('thunderstoreDetailTitle').textContent = mod.name.replaceAll('_', ' ');
+  $('thunderstoreDetailAuthor').textContent = mod.author;
+  $('thunderstoreDetailIcon').replaceChildren(thunderstoreIcon(mod, true));
+  thunderstoreStats(mod, $('thunderstoreDetailStats'));
+  const categories = Array.isArray(mod.categories) ? mod.categories.filter(Boolean) : [];
+  $('thunderstoreDetailCategories').textContent = categories.join(' · ');
+  $('thunderstoreDetailCategories').hidden = categories.length === 0;
+  $('thunderstoreDetailNote').textContent = 'Loading mod details…';
+  $('thunderstoreDetailReadme').textContent = mod.description || '';
+  $('thunderstoreDetailReadme').scrollTop = 0;
+  $('thunderstoreDetail').showModal();
+  send({cmd: 'thunderstoreReadme', id: mod.id});
+}
+
+function fillThunderstoreReadme(element, markdown) {
+  const fragment = document.createDocumentFragment();
+  let list = null, code = null;
+  // Package text is external data. Build elements from text and keep links on the original page.
+  const addInline = (target, text) => {
+    const inline = /(!?)\[([^\]]+)\]\([^)\r\n]+\)|\*\*(.+?)\*\*|`([^`]+)`/g;
+    let start = 0;
+    for (const part of text.matchAll(inline)) {
+      target.append(text.slice(start, part.index));
+      if (part[2] != null) target.append(part[2]);
+      else {
+        const node = document.createElement(part[3] != null ? 'strong' : 'code');
+        node.textContent = part[3] ?? part[4];
+        target.append(node);
+      }
+      start = part.index + part[0].length;
+    }
+    target.append(text.slice(start));
+  };
+  for (const raw of markdown.split(/\r?\n/)) {
+    if (/^\s*(```|~~~)/.test(raw)) {
+      if (code) code = null;
+      else {
+        list = null;
+        code = document.createElement('pre');
+        fragment.append(code);
+      }
+      continue;
+    }
+    if (code) { code.append(raw + '\n'); continue; }
+    const line = raw.trim();
+    const item = /^(?:([-*+])|\d+[.)])\s+(.+)$/.exec(line);
+    if (item) {
+      const kind = item[1] ? 'UL' : 'OL';
+      if (list?.tagName !== kind) {
+        list = document.createElement(kind);
+        fragment.append(list);
+      }
+      const li = document.createElement('li');
+      addInline(li, item[2]);
+      list.append(li);
+      continue;
+    }
+    list = null;
+    if (!line) continue;
+    const heading = /^(#{1,6})\s+(.*)$/.exec(line);
+    const block = document.createElement(heading ? (heading[1].length > 2 ? 'h4' : 'h3') : 'p');
+    addInline(block, heading ? heading[2] : line);
+    fragment.append(block);
+  }
+  element.replaceChildren(fragment);
+}
+
 function renderThunderstore(message) {
   const status = $('thunderstoreStatus');
+  if (message.type === 'thunderstoreReadme') {
+    if (!$('thunderstoreDetail').open || thunderstoreDetailPackage?.id !== message.id) return;
+    if (message.version) thunderstoreStats({...thunderstoreDetailPackage, version: message.version}, $('thunderstoreDetailStats'));
+    const note = $('thunderstoreDetailNote');
+    const markdown = typeof message.markdown === 'string' ? message.markdown.trim() : '';
+    note.textContent = message.error ? 'Could not load the full mod description.'
+      : markdown ? '' : 'This mod has no extra description.';
+    if (markdown) fillThunderstoreReadme($('thunderstoreDetailReadme'), markdown);
+    return;
+  }
   if (message.type === 'thunderstoreInstall') {
     setThunderstoreInstalling(message.busy);
     status.textContent = message.note;
@@ -1337,17 +1503,31 @@ function renderThunderstore(message) {
   for (const mod of message.packages) {
     const row = document.createElement('article');
     row.className = 'thunderstore-package';
+    const summary = document.createElement('div');
+    summary.className = 'thunderstore-summary';
     const title = document.createElement('strong');
-    title.textContent = mod.name + ' · ' + mod.author;
+    title.translate = false;
+    title.textContent = mod.name.replaceAll('_', ' ');
+    const author = document.createElement('span');
+    author.className = 'thunderstore-author';
+    author.translate = false;
+    author.textContent = mod.author;
+    summary.append(title, author);
     const description = document.createElement('p');
+    description.translate = false;
     description.textContent = mod.description || '';
+    if (description.textContent) summary.append(description);
+    const stats = document.createElement('dl');
+    stats.className = 'thunderstore-stats';
+    thunderstoreStats(mod, stats);
+    if (stats.childElementCount) summary.append(stats);
     const actions = document.createElement('div');
     actions.className = 'thunderstore-actions';
     const page = document.createElement('button');
     page.type = 'button';
     page.className = 'btn';
-    page.textContent = 'View package';
-    page.onclick = () => send({cmd: 'thunderstorePage', id: mod.id});
+    page.textContent = 'Mod details';
+    page.onclick = () => showThunderstoreDetail(mod);
     const install = document.createElement('button');
     install.type = 'button';
     install.className = 'btn';
@@ -1360,7 +1540,7 @@ function renderThunderstore(message) {
       send({cmd: 'thunderstoreInstall', id: mod.id});
     };
     actions.append(install, page);
-    row.append(title, description, actions);
+    row.append(thunderstoreIcon(mod), summary, actions);
     list.append(row);
   }
   $('thunderstorePackages').replaceChildren(list);
@@ -1368,6 +1548,9 @@ function renderThunderstore(message) {
 
 $('thunderstoreRefresh').onclick = loadThunderstore;
 $('thunderstoreCommunity').onclick = () => send({cmd: 'thunderstorePage'});
+$('thunderstoreDetailPage').onclick = () => {
+  if (thunderstoreDetailPackage) send({cmd: 'thunderstorePage', id: thunderstoreDetailPackage.id});
+};
 $('modsTab').addEventListener('click', () => { if (!thunderstoreRequested) loadThunderstore(); });
 
 let savingOnlineName = false;
@@ -2019,7 +2202,7 @@ if (host) { host.addEventListener('message', e => !e.data ? 0 : e.data.type === 
 const PAD = {A: 0, B: 1, LB: 4, RB: 5, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15};
 function focusables() {
   const veil = [...document.querySelectorAll('.veil:not(.gone):not([hidden])')].pop(), dd = document.querySelector('.dd.open');
-  const dialog = $('teamRosterDialog').open ? $('teamRosterDialog') : $('modTeamsDialog').open ? $('modTeamsDialog') : null;
+  const dialog = [...document.querySelectorAll('dialog[open]')].pop();
   const root = dialog || (dd ? dd.querySelector('.dd-list') : veil || document);
   return [...root.querySelectorAll('button,input:not([type=hidden]),select,[tabindex="0"],.dd-opt,.tpt,.spic')].filter(el => {
     if (el.disabled) return false; const r = el.getBoundingClientRect();
@@ -2041,6 +2224,7 @@ function padMove(dx, dy) {
   if (best) { best.focus(); best.scrollIntoView({block: 'nearest', inline: 'nearest'}); }
 }
 function padBack() {
+  if ($('thunderstoreDetail').open) return $('thunderstoreDetail').close();
   if ($('teamRosterDialog').open) return $('teamRosterDialog').close();
   if ($('modTeamsDialog').open) return $('modTeamsDialog').close();
   const dd = document.querySelector('.dd.open'); if (dd) { dd.classList.remove('open'); dd.querySelector('.dd-btn').focus(); return; }

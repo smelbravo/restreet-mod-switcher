@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -49,18 +50,14 @@ internal static class ThunderstoreGameInstall
         foreach (var package in archives)
         {
             using var zip = ZipFile.OpenRead(package.FilePath);
-            foreach (var file in GameFiles(zip).OrderBy(file => file.Path == LocalizationFile))
+            var files = GameFiles(zip);
+            foreach (var file in files.Where(file => file.Path != LocalizationFile))
             {
                 cancellation.ThrowIfCancellationRequested();
                 string output = Path.Combine(destination, file.Path);
                 Directory.CreateDirectory(Path.GetDirectoryName(output)!);
                 if (File.Exists(output)) File.SetAttributes(output, FileAttributes.Normal);
                 using var content = file.Entry.Open();
-                if (file.Path == LocalizationFile)
-                {
-                    ThunderstoreLocalization.Apply(content, file.Entry.Length, destination, cancellation);
-                    continue;
-                }
                 if (file.IsPatch)
                 {
                     ThunderstoreDataPatch.Apply(content, file.Entry.Length, vanilla, file.Path, output, cancellation);
@@ -68,6 +65,16 @@ internal static class ThunderstoreGameInstall
                 }
                 using var replacement = File.Create(output);
                 CopyFile(content, replacement, cancellation);
+            }
+            if (files.Any(file => file.Path.Equals(Path.Combine("data", "loc", "locale.big"), StringComparison.OrdinalIgnoreCase)))
+            {
+                try { ThunderstoreLocalization.ApplyMissingNames(vanilla, destination, cancellation); }
+                catch (InvalidDataException ex) { Debug.WriteLine(ex); }
+            }
+            if (files.FirstOrDefault(file => file.Path == LocalizationFile) is { } localization)
+            {
+                using var content = localization.Entry.Open();
+                ThunderstoreLocalization.Apply(content, localization.Entry.Length, destination, cancellation);
             }
         }
     }

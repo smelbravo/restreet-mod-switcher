@@ -5,6 +5,34 @@ namespace FifaStreetLauncher;
 
 internal static class GameLocaleStrings
 {
+    internal record struct LocaleFile(string Archive, string Database);
+
+    private static readonly Dictionary<string, LocaleFile> Locales = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["en"] = new("locale.big", "eng_us"),
+        ["es"] = new("locale.big", "spa_es"),
+        ["fr"] = new("locale.big", "fre_fr"),
+        ["de"] = new("locale.big", "ger_de"),
+        ["it"] = new("locale.big", "ita_it"),
+        ["pt-BR"] = new("locale_ptbr.big", "eng_us"),
+        ["pt-PT"] = new("locale_ptpt.big", "eng_us")
+    };
+
+    internal static bool Supports(string language) => Locales.ContainsKey(language);
+
+    internal static LocaleFile GetFiles(string? language) =>
+        Locales.GetValueOrDefault(language ?? "en", Locales["en"]);
+
+    internal static string? LanguageOf(string archive, string database)
+    {
+        string name = Path.GetFileNameWithoutExtension(database);
+        foreach (var (language, file) in Locales)
+            if (file.Archive.Equals(archive, StringComparison.OrdinalIgnoreCase) &&
+                file.Database.Equals(name, StringComparison.OrdinalIgnoreCase))
+                return language;
+        return null;
+    }
+
     internal static string? Read(ReadOnlySpan<byte> strings, int treeSize, int offset, int lengthBytes, int maxLength)
     {
         if (offset < treeSize || offset > strings.Length - lengthBytes) return null;
