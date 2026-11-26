@@ -1861,6 +1861,8 @@ startInfo.Environment["REX_DRAW_RESOLUTION_SCALE_Y"] =
                 Profile = profileBox.SelectedIndex,
                 ClassicGamePath = classicGamePath,
                 Street2026GamePath = street2026GamePath,
+                ManualModSetup = manualModSetup,
+                RemovedManualProfiles = removedManualProfiles.ToArray(),
                 ThunderstoreProfiles = communityProfiles.Values.ToArray(),
                 ModProfile = modProfile,
                 OnlineMode = onlineModeBox.Checked
@@ -2082,6 +2084,8 @@ public class LauncherSettings
     public int Profile { get; set; } = 0;
     public string? ClassicGamePath { get; set; }
     public string? Street2026GamePath { get; set; }
+    public bool ManualModSetup { get; set; }
+    public string[]? RemovedManualProfiles { get; set; }
     public ThunderstoreModProfile[]? ThunderstoreProfiles { get; set; }
     public string? ModProfile { get; set; }
     public bool ClassicSelected { get; set; }

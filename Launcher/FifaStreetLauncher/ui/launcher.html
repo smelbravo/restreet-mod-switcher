@@ -369,8 +369,6 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 .mod-card img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
 .mod-card strong,.mod-card small{display:block;margin:12px 12px 0}
 .mod-card small{margin:6px 12px 14px;color:#b6becd;line-height:1.4}
-.mod-details{background:#181b23;border:1px solid #363b48;border-radius:12px;padding:16px;margin-top:14px}
-#modPath{overflow-wrap:anywhere;margin-bottom:0}
 @media(max-width:780px){.mod-grid{grid-template-columns:repeat(auto-fit,minmax(155px,1fr))}}
 #thunderstore{margin:20px 0 24px;padding:16px 18px;background:var(--panel);border:1px solid var(--seam-2);border-radius:12px}
 .thunderstore-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -424,8 +422,6 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 #modTeamsGrid{margin:12px 0}
 .mod-teams-header{display:flex;justify-content:space-between;align-items:center;gap:10px}
 #modTeamsSearch{width:100%}
-#thunderstoreProfilesList{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
-#thunderstoreProfilesList button[aria-pressed=true]{border-color:var(--accent)}
 .mod-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin:16px 0}
 .mod-gallery button{padding:0;overflow:hidden;cursor:zoom-in}
 .mod-gallery img{display:block;width:100%;aspect-ratio:16/9;object-fit:contain;background:#0c0e13}
@@ -437,9 +433,6 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 .mod-card img{object-fit:contain;background:#101217}
 .mod-card strong{font-size:16px}
 .mod-card small{min-height:2.8em}
-.mod-details{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:14px 16px}
-.mod-details[hidden]{display:none}
-#modPath{flex-basis:100%;margin:4px 0 0}
 .mod-page-head{margin:16px 0 22px}
 #modTitle{font-size:28px;margin:14px 0 5px}
 #modDescription{color:#b6becd;max-width:66ch;line-height:1.55}
@@ -657,13 +650,13 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
       </div>
     </header>
     <div class="mods-tabs" role="tablist" aria-label="Mods">
-      <button type="button" role="tab" id="manualTab" aria-controls="manualProfiles" aria-selected="true">Profiles</button>
-      <button type="button" role="tab" id="installedTab" aria-controls="thunderstoreProfiles" aria-selected="false" tabindex="-1">Installed mods</button>
+      <button type="button" role="tab" id="profilesTab" aria-controls="profilesPanel" aria-selected="true">Profiles</button>
+      <button type="button" role="tab" id="installedTab" aria-controls="installedPanel" aria-selected="false" tabindex="-1">Installed mods</button>
       <button type="button" role="tab" id="catalogTab" aria-controls="thunderstore" aria-selected="false" tabindex="-1">Discover mods</button>
     </div>
-    <section id="manualProfiles" class="mods-section" role="tabpanel" aria-labelledby="manualTab" tabindex="0">
-      <div id="manualProfileList">
-        <h3>Manual profiles</h3>
+    <p id="modChangeStatus" class="sub" role="status"></p>
+    <section id="profilesPanel" class="mods-section" role="tabpanel" aria-labelledby="profilesTab" tabindex="0">
+      <div id="profileList">
         <p class="sub">Each profile has its own World Tour saves. Mod profiles launch offline.</p>
         <div class="mod-grid" role="group" aria-label="Game profile">
           <article class="mod-tile">
@@ -673,7 +666,7 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
               <span class="profile-action">Use profile</span>
             </button>
           </article>
-          <article class="mod-tile">
+          <article class="mod-tile" hidden>
             <button type="button" class="mod-card" data-mod="classic" aria-pressed="false">
               <img src="classic-en.png" data-cover="classic" alt="">
               <strong>FIFA Street Classic</strong><small>Historic clubs, legends and classic kits</small>
@@ -681,7 +674,7 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
             </button>
             <button type="button" class="btn mod-screens" data-gallery="classic" aria-label="FIFA Street Classic screenshots">Screenshots</button>
           </article>
-          <article class="mod-tile">
+          <article class="mod-tile" hidden>
             <button type="button" class="mod-card" data-mod="street2026" aria-pressed="false">
               <img src="2026-en.png" data-cover="street2026" alt="">
               <strong>FIFA Street 2026</strong><small>2025/26 squads, updated clubs and national teams</small>
@@ -690,12 +683,10 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
             <button type="button" class="btn mod-screens" data-gallery="street2026" aria-label="FIFA Street 2026 screenshots">Screenshots</button>
           </article>
         </div>
-        <div class="mod-details" id="modDetails" hidden>
-          <button type="button" class="btn" id="browseMod">Select mod Game folder</button>
-          <button type="button" class="btn" id="downloadMod">Download mod</button>
-          <button type="button" class="btn" id="modPreview">View original post</button>
-          <p class="sub" id="modPath"></p>
-        </div>
+        <section id="communityProfileSection" hidden>
+          <h3>Thunderstore profiles</h3>
+          <div id="communityProfileList" class="mod-rows" role="group" aria-label="Thunderstore profiles"></div>
+        </section>
       </div>
       <div id="modGalleryPage" hidden>
         <div class="mod-page-head">
@@ -707,14 +698,26 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
         <div class="mod-gallery" id="modGallery"></div>
       </div>
     </section>
-    <section id="thunderstoreProfiles" class="mods-section" role="tabpanel" aria-labelledby="installedTab" tabindex="0" hidden>
-      <h3>Thunderstore profiles</h3>
-      <p class="sub">Each profile has its own World Tour saves. Mod profiles launch offline.</p>
-      <div id="thunderstoreProfilesList" role="group" aria-label="Thunderstore profiles"></div>
+    <section id="installedPanel" class="mods-section" role="tabpanel" aria-labelledby="installedTab" tabindex="0" hidden>
+      <div id="installedModsList" class="mod-rows" role="group" aria-label="Installed mods"></div>
       <div class="mods-empty" id="noInstalledMods">
-        <p>No Thunderstore mods installed yet.</p>
+        <p>No mods installed yet.</p>
         <button type="button" class="btn" id="discoverMods">Discover mods</button>
       </div>
+      <section id="manualModSetup" class="manual-mod-setup" hidden>
+        <h3>Manual mod setup</h3>
+        <p class="sub">Choose a separate Game folder where you already installed the mod.</p>
+        <div class="row">
+          <select id="manualModChoice" aria-label="Manual mod">
+            <option value="classic">FIFA Street Classic</option>
+            <option value="street2026">FIFA Street 2026</option>
+          </select>
+          <button type="button" class="btn" id="browseMod">Select mod Game folder</button>
+          <button type="button" class="btn" id="downloadMod">Download mod</button>
+          <button type="button" class="btn" id="modPreview">View original post</button>
+        </div>
+        <p class="sub" id="modPath" translate="no"></p>
+      </section>
     </section>
     <section id="thunderstore" class="mods-section" role="tabpanel" aria-labelledby="catalogTab" tabindex="0" hidden>
       <div class="thunderstore-head">
@@ -741,6 +744,10 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
     <div class="sec">GAME FILES</div>
     <div class="pathrow"><div class="field"><label>GAME EXECUTABLE</label><input id="exe" readonly></div><button class="btn" data-cmd="browseExe">Browse</button></div>
     <div class="pathrow"><div class="field"><label>GAME DATA FOLDER</label><input id="data" readonly></div><button class="btn" data-cmd="browseData">Browse</button></div>
+    <div id="manualModSetting" hidden>
+      <div class="sec">Mods</div>
+      <div class="tg" tabindex="0" role="switch" aria-checked="false" data-id="manualModSetup"><div>Show manual mod setup<small>Show folder and download options under Installed mods.</small></div><div class="sw"></div></div>
+    </div>
     <div class="sec old-only">COMPATIBILITY</div>
     <div class="grid2 old-only" style="margin-bottom:14px"><div class="field"><label>READBACK RESOLVE</label><div class="dd" data-id="readback"><button class="dd-btn" type="button"><span></span><i></i></button><div class="dd-list"></div></div></div></div>
     <div class="toggles old-only"><div class="tg" tabindex="0" role="switch" data-id="memexport"><div>Memory Export</div><div class="sw"></div></div><div class="tg" tabindex="0" role="switch" data-id="memexportFast"><div>Fast MemExport</div><div class="sw"></div></div><div class="tg" tabindex="0" role="switch" data-id="pageState"><div>Memory Page State</div><div class="sw"></div></div><div class="tg" tabindex="0" role="switch" data-id="occlusion"><div>Occlusion Queries</div><div class="sw"></div></div><div class="tg" tabindex="0" role="switch" data-id="asyncShaders"><div>Async Shaders</div><div class="sw"></div></div><div class="tg" tabindex="0" role="switch" data-id="frameStats"><div>Frame stats log</div><div class="sw"></div></div><div class="tg" tabindex="0" role="switch" data-id="perfShare"><div>Share performance reports</div><div class="sw"></div></div></div>
@@ -756,6 +763,16 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
     <div class="row" style="margin-top:20px"><button class="btn" data-cmd="logs">Open logs</button><button class="btn" data-cmd="folder">Open game folder</button><button class="btn" data-cmd="shortcut">Desktop shortcut</button></div>
   </div></section>
 </div>
+<dialog id="uninstallModDialog" aria-labelledby="uninstallModTitle" aria-describedby="uninstallModNote">
+  <h3 id="uninstallModTitle">Uninstall mod</h3>
+  <strong id="uninstallModName" translate="no"></strong>
+  <p id="uninstallModNote"></p>
+  <p id="uninstallModPath" translate="no"></p>
+  <form method="dialog" class="row">
+    <button class="btn" value="cancel" autofocus>Cancel</button>
+    <button class="btn danger" id="confirmModUninstall" value="confirm">Uninstall</button>
+  </form>
+</dialog>
 <dialog id="modTeamsDialog" aria-labelledby="modTeamsTitle">
   <div class="mod-teams-header"><h3 id="modTeamsTitle">Mod teams</h3>
     <form method="dialog"><button class="btn">Close</button></form>
@@ -1138,18 +1155,22 @@ function openModGallery(id) {
     };
     $('modGallery').append(button);
   }
-  $('manualProfileList').hidden = true;
+  $('profileList').hidden = true;
   $('modGalleryPage').hidden = false;
   $('modBack').focus();
 }
 $('modBack').onclick = () => {
   $('modGalleryPage').hidden = true;
-  $('manualProfileList').hidden = false;
+  $('profileList').hidden = false;
   document.querySelector('.mod-screens[data-gallery="' + galleryId + '"]').focus();
 };
-$('browseMod').onclick = () => send({cmd: 'browseMod'});
-$('downloadMod').onclick = () => send({cmd: 'downloadMod'});
-$('modPreview').onclick = () => send({cmd: 'modPreview'});
+for (const cmd of ['browseMod', 'downloadMod', 'modPreview']) {
+  $(cmd).onclick = () => send({cmd, id: $('manualModChoice').value});
+}
+let installedMods = [];
+$('manualModChoice').onchange = () => {
+  $('modPath').textContent = installedMods.find(mod => mod.id === $('manualModChoice').value)?.path || '';
+};
 
 const modCrestBatchSize = 24;
 let teamRosterRequest = 0;
@@ -1351,7 +1372,7 @@ $('modTeamsSearch').oninput = renderModTeams;
 
 let thunderstoreRequested = false;
 let thunderstoreInstalling = false;
-let thunderstoreProfilesState = '';
+let modListsState = '';
 let thunderstoreDetailPackage = null;
 
 function setThunderstoreInstalling(busy) {
@@ -1360,40 +1381,102 @@ function setThunderstoreInstalling(busy) {
   $('thunderstorePackages').querySelectorAll('[data-install-package]').forEach(button => { button.disabled = busy; });
 }
 
-function renderThunderstoreProfiles(profiles, selected, locked) {
-  const state = JSON.stringify([profiles, selected, locked]);
-  if (thunderstoreProfilesState === state) return;
-  thunderstoreProfilesState = state;
-  $('noInstalledMods').hidden = profiles.length !== 0;
-  const list = $('thunderstoreProfilesList');
-  const focusedId = list.contains(document.activeElement) ? document.activeElement.dataset.profile : null;
+function renderModLists(mods, selected, locked) {
+  const state = JSON.stringify([mods, selected, locked]);
+  if (modListsState === state) return;
+  modListsState = state;
+  const community = mods.filter(mod => !mod.manual);
+  $('noInstalledMods').hidden = mods.length !== 0;
+  $('communityProfileSection').hidden = community.length === 0;
+  renderModRows($('installedModsList'), mods, selected, locked, true);
+  renderModRows($('communityProfileList'), community, selected, locked, false);
+}
+
+function renderModRows(list, mods, selected, locked, allowUninstall) {
+  const focused = list.contains(document.activeElement) ? document.activeElement : null;
   const rows = document.createDocumentFragment();
   let restoreFocus;
-  for (const mod of profiles) {
+  for (const mod of mods) {
     const row = document.createElement('article');
     row.className = 'installed-mod';
     const info = document.createElement('div');
     const name = document.createElement('strong');
-    const author = document.createElement('small');
     name.textContent = mod.name.replaceAll('_', ' ');
-    author.textContent = mod.author;
-    info.translate = false;
-    info.append(name, author);
+    name.translate = false;
+    const source = document.createElement('span');
+    source.textContent = mod.manual ? 'Manual installation' : 'Thunderstore';
+    const meta = document.createElement('small');
+    meta.append(source);
+    const details = [mod.author, mod.version && 'v' + mod.version].filter(Boolean);
+    if (details.length) {
+      const detail = document.createElement('span');
+      detail.translate = false;
+      detail.textContent = ' · ' + details.join(' · ');
+      meta.append(detail);
+    }
+    info.append(name, meta);
+    const actions = document.createElement('div');
+    actions.className = 'row';
     const button = document.createElement('button');
     button.className = 'btn';
     button.type = 'button';
     button.dataset.profile = mod.id;
-    button.setAttribute('aria-label', mod.name);
+    button.dataset.action = 'select';
     button.textContent = mod.id === selected ? 'Active profile' : 'Use profile';
+    button.title = name.textContent;
     button.disabled = locked;
     button.setAttribute('aria-pressed', String(mod.id === selected));
     button.onclick = () => send({cmd: 'selectModProfile', value: mod.id});
-    if (mod.id === focusedId) restoreFocus = button;
-    row.append(info, button);
+    actions.append(button);
+    if (allowUninstall) {
+      const uninstall = document.createElement('button');
+      uninstall.className = 'btn danger';
+      uninstall.type = 'button';
+      uninstall.dataset.profile = mod.id;
+      uninstall.dataset.action = 'uninstall';
+      uninstall.textContent = 'Uninstall';
+      uninstall.title = name.textContent;
+      uninstall.disabled = locked;
+      uninstall.onclick = () => confirmUninstall(mod);
+      actions.append(uninstall);
+    }
+    if (mod.id === focused?.dataset.profile)
+      restoreFocus = [...actions.children].find(action => action.dataset.action === focused.dataset.action);
+    row.append(info, actions);
     rows.append(row);
   }
   list.replaceChildren(rows);
   restoreFocus?.focus();
+}
+
+const uninstallDialog = $('uninstallModDialog');
+let modToUninstall;
+function confirmUninstall(mod) {
+  modToUninstall = mod;
+  $('uninstallModName').textContent = mod.name.replaceAll('_', ' ');
+  $('uninstallModPath').textContent = mod.path;
+  $('uninstallModNote').textContent = mod.recycleFiles
+    ? 'Send the mod’s Game folder to the Recycle Bin. World Tour saves are kept.'
+    : 'Remove this profile from the launcher. Its files and World Tour saves stay in place.';
+  $('confirmModUninstall').textContent = mod.recycleFiles ? 'Uninstall' : 'Remove profile';
+  uninstallDialog.showModal();
+}
+uninstallDialog.querySelector('form').onsubmit = event => {
+  if (event.submitter?.value !== 'confirm' || !modToUninstall) return;
+  const {id, path, recycleFiles} = modToUninstall;
+  $('modChangeStatus').textContent = 'Uninstalling mod…';
+  send({cmd: 'uninstallMod', id, path, recycleFiles});
+};
+function renderModUninstall(message) {
+  const status = $('modChangeStatus');
+  status.classList.toggle('mod-error', message.error);
+  status.textContent = message.note;
+  if (message.recoveryPath) {
+    const path = document.createElement('span');
+    path.translate = false;
+    path.textContent = ' ' + message.recoveryPath;
+    status.append(path);
+  }
 }
 
 function loadThunderstore() {
@@ -1660,10 +1743,10 @@ function render(s) {
     $('homeProfile').hidden = false;
     $('activeProfile').hidden = false;
     const modded = s.modProfiles.selected !== 'vanilla';
-    const community = s.modProfiles.community || [];
+    installedMods = s.modProfiles.installed;
     const selectedCard = [...modCards].find(card => card.dataset.mod === s.modProfiles.selected);
-    const selectedPackage = community.find(mod => mod.id === s.modProfiles.selected);
-    const profileName = selectedPackage?.name.replaceAll('_', ' ') ?? selectedCard?.querySelector('strong').textContent ?? s.modProfiles.selected;
+    const selectedMod = installedMods.find(mod => mod.id === s.modProfiles.selected);
+    const profileName = selectedMod?.name.replaceAll('_', ' ') ?? selectedCard?.querySelector('strong').textContent ?? s.modProfiles.selected;
     $('homeProfileName').textContent = profileName;
     $('activeProfileName').textContent = profileName;
     const profile = JSON.stringify([s.modProfiles.selected, s.modProfiles.path]);
@@ -1679,19 +1762,22 @@ function render(s) {
     $('gModNotice').hidden = !modded;
     modCards.forEach(card => {
       const selected = card === selectedCard;
+      card.closest('.mod-tile').hidden = card.dataset.mod !== 'vanilla' && !installedMods.some(mod => mod.id === card.dataset.mod);
       card.setAttribute('aria-pressed', String(selected));
       card.querySelector('.profile-action').textContent = selected ? 'Active profile' : 'Use profile';
       card.disabled = s.modProfiles.locked;
     });
-    $('modDetails').hidden = !modded || !!s.modProfiles.communitySelected;
-    renderThunderstoreProfiles(community, s.modProfiles.selected, s.modProfiles.locked);
-    $('browseMod').disabled = !modded || s.modProfiles.locked;
-    $('modPath').textContent = modded ? s.modProfiles.path || 'No mod Game folder selected.' : '';
+    renderModLists(installedMods, s.modProfiles.selected, s.modProfiles.locked);
+    $('manualModSetting').hidden = false;
+    $('manualModSetup').hidden = !s.modProfiles.manualSetup;
+    $('browseMod').disabled = s.modProfiles.locked;
+    $('manualModChoice').onchange();
   }
   if (s.controls) renderControls(s.controls);
   for (const [id, f] of Object.entries(s.fields || {})) fillDD(id, f);
   for (const [id, t] of Object.entries(s.toggles || {})) { const el = document.querySelector('.tg[data-id="' + id + '"]'); if (!el) continue;
-    el.classList.toggle('on', !!t.on); el.classList.toggle('dis', t.enabled === false); el.style.opacity = t.enabled === false ? .5 : 1; }
+    el.classList.toggle('on', !!t.on); el.setAttribute('aria-checked', String(!!t.on));
+    el.classList.toggle('dis', t.enabled === false); el.style.opacity = t.enabled === false ? .5 : 1; }
   $('exe').value = s.exe || ''; $('data').value = s.data || '';
   $('summary').textContent = s.summary || ''; $('status').textContent = s.status || ''; $('status').classList.toggle('bad', s.statusOk === false);
   gameIsRunning = !!s.running; document.body.classList.toggle('deck', !!s.deck);
@@ -2275,7 +2361,7 @@ setInterval(() => {
   }
 }, 3000);
 document.querySelector('[data-p=p-comp]').addEventListener('click', () => { compAt = {table: 0, tournaments: 0}; send({cmd: 'comp', action: 'me'}); });
-if (host) { host.addEventListener('message', e => !e.data ? 0 : e.data.type === 'social' ? renderSocial(e.data) : e.data.type === 'comp' ? renderComp(e.data) : e.data.type === 'saves' ? renderSaves(e.data) : e.data.type === 'key' ? renderKey(e.data) : e.data.type === 'onlineName' ? renderOnlineName(e.data) : e.data.type === 'perf' ? renderPerf(e.data) : e.data.type === 'perfHistory' ? renderHistory(e.data) : e.data.type === 'teamRoster' ? renderTeamRoster(e.data) : e.data.type === 'modTeams' || e.data.type === 'modTeamCrests' ? renderModCatalog(e.data) : String(e.data.type).startsWith('thunderstore') ? renderThunderstore(e.data) : String(e.data.type).startsWith('update') ? renderUpdate(e.data) : render(e.data)); send({cmd: 'state'}); }
+if (host) { host.addEventListener('message', e => !e.data ? 0 : e.data.type === 'social' ? renderSocial(e.data) : e.data.type === 'comp' ? renderComp(e.data) : e.data.type === 'saves' ? renderSaves(e.data) : e.data.type === 'key' ? renderKey(e.data) : e.data.type === 'onlineName' ? renderOnlineName(e.data) : e.data.type === 'perf' ? renderPerf(e.data) : e.data.type === 'perfHistory' ? renderHistory(e.data) : e.data.type === 'teamRoster' ? renderTeamRoster(e.data) : e.data.type === 'modUninstall' ? renderModUninstall(e.data) : e.data.type === 'modTeams' || e.data.type === 'modTeamCrests' ? renderModCatalog(e.data) : String(e.data.type).startsWith('thunderstore') ? renderThunderstore(e.data) : String(e.data.type).startsWith('update') ? renderUpdate(e.data) : render(e.data)); send({cmd: 'state'}); }
 // Controller (Steam Deck, Xbox pad): D-pad / left stick move the focus to the nearest control on screen, A presses it,
 // B closes a list or dialog (else goes back to Home), LB / RB step through the pages. Only while a pad is connected.
 const PAD = {A: 0, B: 1, LB: 4, RB: 5, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15};
@@ -2303,6 +2389,7 @@ function padMove(dx, dy) {
   if (best) { best.focus(); best.scrollIntoView({block: 'nearest', inline: 'nearest'}); }
 }
 function padBack() {
+  if (uninstallDialog.open) return uninstallDialog.close();
   if ($('modLightbox').open) return $('modLightbox').close();
   if ($('thunderstoreDetail').open) return $('thunderstoreDetail').close();
   if ($('teamRosterDialog').open) return $('teamRosterDialog').close();
@@ -2312,7 +2399,7 @@ function padBack() {
   if (!$('passAsk').classList.contains('gone')) return closePassword();
   if (!$('teamPick').classList.contains('gone')) return closeTeamPicker(false);
   for (const id of ['updAsk', 'perfAsk']) if (!$(id).classList.contains('gone')) return $(id === 'updAsk' ? 'updLater' : 'perfNo').click();
-  if ($('p-mods').classList.contains('on') && !$('manualProfiles').hidden && !$('modGalleryPage').hidden) return $('modBack').click();
+  if ($('p-mods').classList.contains('on') && !$('profilesPanel').hidden && !$('modGalleryPage').hidden) return $('modBack').click();
   goPage('p-home');
 }
 function padPage(step) {

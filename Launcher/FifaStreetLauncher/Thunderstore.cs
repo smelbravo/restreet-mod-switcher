@@ -27,6 +27,9 @@ public partial class LauncherForm
     private Dictionary<string, ThunderstorePackage> thunderstorePackages = new();
     private bool thunderstoreLoading;
     private bool thunderstoreInstalling;
+    private static string ThunderstoreInstallRoot => Path.Combine(AppContext.BaseDirectory, "Mods", "Thunderstore");
+    private static FileStream LockThunderstoreInstalls() =>
+        new(Path.Combine(ThunderstoreInstallRoot, ".install.lock"), FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
 
     private sealed record ThunderstoreCategory(string Name);
     private sealed record ThunderstorePackage(
@@ -165,7 +168,7 @@ public partial class LauncherForm
 
     private async Task InstallThunderstoreAsync(string id)
     {
-        if (thunderstoreInstalling || !thunderstorePackages.TryGetValue(id, out var package)) return;
+        if (thunderstoreInstalling || uninstallingMod || !thunderstorePackages.TryGetValue(id, out var package)) return;
         if (launchingGame || AnyGameRunning())
         {
             ReportThunderstoreInstall(id, "Close the game before installing a mod.", true);
@@ -198,9 +201,9 @@ public partial class LauncherForm
                 return;
             }
 
-            string installRoot = Path.Combine(AppContext.BaseDirectory, "Mods", "Thunderstore");
+            string installRoot = ThunderstoreInstallRoot;
             Directory.CreateDirectory(installRoot);
-            using var installLock = new FileStream(Path.Combine(installRoot, ".install.lock"), FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
+            using var installLock = LockThunderstoreInstalls();
             string token = Guid.NewGuid().ToString("N");
             staging = Path.Combine(installRoot, ".install-" + token);
             Directory.CreateDirectory(staging);
@@ -215,8 +218,7 @@ public partial class LauncherForm
                 ReportThunderstoreInstall(id, "Close the game before installing a mod.", true);
                 return;
             }
-            string baseName = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
-                System.Text.Encoding.UTF8.GetBytes(profile.Id.ToLowerInvariant())))[..16];
+            string baseName = ThunderstoreProfileKey(profile.Id);
             publishedGame = Path.Combine(installRoot, baseName + "-" + version + "-" + token);
             Directory.CreateDirectory(publishedGame);
             string destination = Path.Combine(publishedGame, "Game");

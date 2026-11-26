@@ -97,7 +97,7 @@
 .mods-tabs button[aria-selected="true"] { background: var(--panel-2); color: var(--ink); border-bottom-color: var(--brand); }
 .mods-section h3 { font: 800 28px/1.1 var(--display); }
 .mods-section > .sub, #manualProfileList > .sub { margin-bottom: 16px; }
-.mod-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 14px; margin: 0 0 16px; }
+.mod-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 14px; margin: 0 0 16px; }
 .mod-tile { display: grid; grid-template-rows: 1fr auto; min-width: 0; background: var(--panel); border: 1px solid var(--seam-2); border-radius: 9px; }
 .mod-tile:has(.mod-card[aria-pressed="true"]) { border-color: var(--brand); }
 .mod-card { display: flex; flex-direction: column; align-items: stretch; width: 100%; border: 0; border-radius: 8px; background: transparent; }
@@ -109,11 +109,25 @@
 .profile-action { display: block; margin: 0 12px 12px; font-size: 12px; font-weight: 700; color: var(--carbon); }
 .mod-card[aria-pressed="true"] .profile-action { color: var(--brand); }
 .mod-screens { justify-self: start; margin: 0 12px 12px; padding: 6px 10px; }
-.mod-details { background: var(--panel); border-color: var(--seam); }
 .installed-mod, .mods-empty { padding: 14px 16px; border: 1px solid var(--seam); border-radius: 8px; background: var(--panel); }
 .installed-mod { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 14px; align-items: center; overflow-wrap: anywhere; }
-#thunderstoreProfilesList { display: grid; gap: 8px; margin: 0; }
-#thunderstoreProfilesList button[aria-pressed="true"] { color: var(--brand); }
+.mod-rows { display: grid; gap: 8px; }
+.mod-rows:empty, #modChangeStatus:empty, #modPath:empty { display: none; }
+.mod-rows button[aria-pressed="true"] { color: var(--brand); border-color: var(--brand); }
+#communityProfileSection h3 { margin-bottom: 10px; }
+.manual-mod-setup { margin-top: 20px; padding: 16px; border: 1px solid var(--seam); border-radius: 8px; background: var(--panel); }
+#manualModChoice { max-width: 100%; padding: 11px 12px; color: var(--ink); background: var(--night); border: 1px solid var(--seam-2); border-radius: 8px; font: inherit; }
+#modPath { margin: 12px 0 0; overflow-wrap: anywhere; user-select: text; }
+.btn.danger { color: var(--red); }
+.btn.danger:hover:not(:disabled) { border-color: var(--red); }
+.btn:disabled { opacity: .55; cursor: default; }
+#modChangeStatus.mod-error { color: var(--red); overflow-wrap: anywhere; }
+#uninstallModDialog { width: min(480px, calc(100vw - 40px)); margin: auto; padding: 22px; border: 1px solid var(--seam-2); border-radius: 10px; background: var(--panel); color: var(--ink); }
+#uninstallModDialog::backdrop { background: #000a; }
+#uninstallModDialog h3 { margin-bottom: 8px; font: 800 29px/1.1 var(--display); }
+#uninstallModDialog p { margin: 8px 0; color: var(--muted); }
+#uninstallModPath { overflow-wrap: anywhere; user-select: text; }
+#uninstallModDialog .row { justify-content: flex-end; margin-top: 16px; }
 .mods-empty p { margin-bottom: 10px; color: var(--muted); }
 #thunderstore { margin: 0; padding: 0; background: none; border: 0; }
 .thunderstore-package { margin-top: 12px; background: var(--panel); }
