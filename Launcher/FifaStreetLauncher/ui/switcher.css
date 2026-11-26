@@ -131,6 +131,8 @@
 .mods-empty p { margin-bottom: 10px; color: var(--muted); }
 #thunderstore { margin: 0; padding: 0; background: none; border: 0; }
 .thunderstore-package { margin-top: 12px; background: var(--panel); }
+.thunderstore-package .thunderstore-actions { align-items: center; }
+.thunderstore-installed { display: inline-block; padding: 5px 9px; border: 1px solid #3b6a58; border-radius: 6px; background: #203c31; color: #a9ebbe; font: 700 12px Archivo, sans-serif; }
 
 @media (max-width: 1000px) {
   .win { grid-template-columns: 76px minmax(0, 1fr); }

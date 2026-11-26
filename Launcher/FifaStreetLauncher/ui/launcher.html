@@ -804,6 +804,7 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
         <h3 id="thunderstoreDetailTitle" translate="no"></h3>
         <p id="thunderstoreDetailAuthor" class="thunderstore-author" translate="no"></p>
       </div>
+      <span id="thunderstoreDetailInstalled" class="thunderstore-installed" hidden>Installed</span>
     </div>
     <form method="dialog"><button class="btn" autofocus>Close</button></form>
   </div>
@@ -812,6 +813,7 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
   <p id="thunderstoreDetailNote" class="sub" role="status"></p>
   <div id="thunderstoreDetailReadme" translate="no" tabindex="0"></div>
   <div class="thunderstore-actions">
+    <button type="button" class="btn" id="thunderstoreDetailUpdate" hidden>Update mod</button>
     <button type="button" class="btn" id="thunderstoreDetailPage">Open Thunderstore</button>
   </div>
 </dialog>
@@ -1378,7 +1380,29 @@ let thunderstoreDetailPackage = null;
 function setThunderstoreInstalling(busy) {
   thunderstoreInstalling = busy;
   $('thunderstoreRefresh').disabled = busy;
-  $('thunderstorePackages').querySelectorAll('[data-install-package]').forEach(button => { button.disabled = busy; });
+  syncThunderstoreInstallActions();
+}
+
+function installedThunderstoreMod(id) {
+  const profileId = 'thunderstore:' + id.toLowerCase();
+  return installedMods.find(mod => !mod.manual && mod.id.toLowerCase() === profileId);
+}
+
+function syncThunderstoreInstallActions() {
+  $('thunderstorePackages').querySelectorAll('[data-install-package]').forEach(button => {
+    const installed = !!installedThunderstoreMod(button.dataset.installPackage);
+    button.hidden = installed;
+    button.disabled = thunderstoreInstalling || installed;
+    button.parentElement.querySelector('.thunderstore-installed').hidden = !installed;
+  });
+  syncThunderstoreDetail();
+}
+
+function beginThunderstoreInstall(id) {
+  if (thunderstoreInstalling) return;
+  setThunderstoreInstalling(true);
+  $('thunderstoreStatus').textContent = 'Downloading mod…';
+  send({cmd: 'thunderstoreInstall', id});
 }
 
 function renderModLists(mods, selected, locked) {
@@ -1504,12 +1528,13 @@ function thunderstoreIcon(mod, eager = false) {
   return icon;
 }
 
-function thunderstoreStats(mod, element) {
+function thunderstoreStats(mod, element, installedVersion) {
   const locale = document.documentElement.lang;
   const number = new Intl.NumberFormat(locale);
   const unit = mod.size >= 1024 ** 3 ? 3 : mod.size >= 1024 ** 2 ? 2 : mod.size >= 1024 ? 1 : 0;
   const stats = [
     ['Version', mod.version],
+    ['Installed version', installedVersion],
     ['Size', Number.isFinite(mod.size) && mod.size >= 0 ? new Intl.NumberFormat(locale, {maximumFractionDigits: 1})
       .format(mod.size / 1024 ** unit) + ' ' + ['B', 'KiB', 'MiB', 'GiB'][unit] : null],
     ['Downloads', Number.isFinite(mod.downloads) && mod.downloads >= 0 ? number.format(mod.downloads) : null],
@@ -1529,12 +1554,30 @@ function thunderstoreStats(mod, element) {
   element.replaceChildren(list);
 }
 
+function hasNewerThunderstoreVersion(installed, available) {
+  const version = /^\d+\.\d+\.\d+$/;
+  if (!version.test(installed) || !version.test(available)) return false;
+  const current = installed.split('.').map(Number);
+  const latest = available.split('.').map(Number);
+  const difference = latest.findIndex((part, index) => part !== current[index]);
+  return difference !== -1 && latest[difference] > current[difference];
+}
+
+function syncThunderstoreDetail() {
+  if (!$('thunderstoreDetail').open || !thunderstoreDetailPackage) return;
+  const mod = thunderstoreDetailPackage;
+  const installed = installedThunderstoreMod(mod.id);
+  $('thunderstoreDetailInstalled').hidden = !installed;
+  $('thunderstoreDetailUpdate').hidden = !hasNewerThunderstoreVersion(installed?.version, mod.version);
+  $('thunderstoreDetailUpdate').disabled = thunderstoreInstalling;
+  thunderstoreStats(mod, $('thunderstoreDetailStats'), installed?.version);
+}
+
 function showThunderstoreDetail(mod) {
   thunderstoreDetailPackage = mod;
   $('thunderstoreDetailTitle').textContent = mod.name.replaceAll('_', ' ');
   $('thunderstoreDetailAuthor').textContent = mod.author;
   $('thunderstoreDetailIcon').replaceChildren(thunderstoreIcon(mod, true));
-  thunderstoreStats(mod, $('thunderstoreDetailStats'));
   const categories = Array.isArray(mod.categories) ? mod.categories.filter(Boolean) : [];
   $('thunderstoreDetailCategories').textContent = categories.join(' · ');
   $('thunderstoreDetailCategories').hidden = categories.length === 0;
@@ -1542,6 +1585,7 @@ function showThunderstoreDetail(mod) {
   $('thunderstoreDetailReadme').textContent = mod.description || '';
   $('thunderstoreDetailReadme').scrollTop = 0;
   $('thunderstoreDetail').showModal();
+  syncThunderstoreDetail();
   send({cmd: 'thunderstoreReadme', id: mod.id});
 }
 
@@ -1602,7 +1646,10 @@ function renderThunderstore(message) {
   const status = $('thunderstoreStatus');
   if (message.type === 'thunderstoreReadme') {
     if (!$('thunderstoreDetail').open || thunderstoreDetailPackage?.id !== message.id) return;
-    if (message.version) thunderstoreStats({...thunderstoreDetailPackage, version: message.version}, $('thunderstoreDetailStats'));
+    if (message.version) {
+      thunderstoreDetailPackage = {...thunderstoreDetailPackage, version: message.version};
+      syncThunderstoreDetail();
+    }
     const note = $('thunderstoreDetailNote');
     const markdown = typeof message.markdown === 'string' ? message.markdown.trim() : '';
     note.textContent = message.error ? 'Could not load the full mod description.'
@@ -1656,28 +1703,31 @@ function renderThunderstore(message) {
     page.className = 'btn';
     page.textContent = 'Mod details';
     page.onclick = () => showThunderstoreDetail(mod);
+    const installed = document.createElement('span');
+    installed.className = 'thunderstore-installed';
+    installed.textContent = 'Installed';
     const install = document.createElement('button');
     install.type = 'button';
     install.className = 'btn';
     install.textContent = 'Install mod';
     install.dataset.installPackage = mod.id;
-    install.disabled = thunderstoreInstalling;
-    install.onclick = () => {
-      setThunderstoreInstalling(true);
-      status.textContent = 'Downloading mod…';
-      send({cmd: 'thunderstoreInstall', id: mod.id});
-    };
-    actions.append(install, page);
+    install.onclick = () => beginThunderstoreInstall(mod.id);
+    actions.append(installed, install, page);
     row.append(thunderstoreIcon(mod), summary, actions);
     list.append(row);
   }
   $('thunderstorePackages').replaceChildren(list);
+  syncThunderstoreInstallActions();
 }
 
 $('thunderstoreRefresh').onclick = loadThunderstore;
 $('thunderstoreCommunity').onclick = () => send({cmd: 'thunderstorePage'});
 $('thunderstoreDetailPage').onclick = () => {
   if (thunderstoreDetailPackage) send({cmd: 'thunderstorePage', id: thunderstoreDetailPackage.id});
+};
+$('thunderstoreDetailUpdate').onclick = () => {
+  $('thunderstoreDetail').close();
+  beginThunderstoreInstall(thunderstoreDetailPackage.id);
 };
 const modsTabs = [...document.querySelectorAll('.mods-tabs [role="tab"]')];
 function selectModsTab(tab) {
@@ -1768,6 +1818,7 @@ function render(s) {
       card.disabled = s.modProfiles.locked;
     });
     renderModLists(installedMods, s.modProfiles.selected, s.modProfiles.locked);
+    syncThunderstoreInstallActions();
     $('manualModSetting').hidden = false;
     $('manualModSetup').hidden = !s.modProfiles.manualSetup;
     $('browseMod').disabled = s.modProfiles.locked;
