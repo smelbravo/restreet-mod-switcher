@@ -20,7 +20,7 @@ public partial class LauncherForm
     private string modProfile = "vanilla";
     private bool launchingGame;
     private bool uninstallingMod;
-    private bool ManualModSetupLocked => launchingGame || gameRunning || thunderstoreInstalling || uninstallingMod;
+    private bool ManualModSetupLocked => launchingGame || gameRunning || thunderstoreInstalling || uninstallingMod || updating;
     private bool UseMod => modProfile != "vanilla" && PageConnected;
     private bool IsBuiltInMod => modProfile is "classic" or "street2026";
     private string ModGamePath => modProfile switch
@@ -94,7 +94,7 @@ public partial class LauncherForm
 
     private void SelectModProfile(string? id)
     {
-        if (launchingGame || gameRunning || uninstallingMod || AnyGameRunning()) return;
+        if (launchingGame || gameRunning || uninstallingMod || updating || AnyGameRunning()) return;
         string? selected = id == "vanilla" ? id
             : InstalledMods().FirstOrDefault(mod => mod.Id.Equals(id, StringComparison.OrdinalIgnoreCase))?.Id;
         if (selected == null || selected == modProfile) return;
@@ -200,6 +200,11 @@ public partial class LauncherForm
         void Report(string note, bool error = false, string? recoveryPath = null) =>
             PostToPage(new { type = "modUninstall", id, note, error, recoveryPath });
 
+        if (updating)
+        {
+            Report("Wait for the launcher update to finish.", true);
+            return;
+        }
         if (ManualModSetupLocked || AnyGameRunning())
         {
             Report("Close the game and wait for any mod operation to finish.", true);

@@ -114,6 +114,11 @@ public partial class LauncherForm
     private async Task InstallUpdateAsync()
     {
         if (pendingUpdate is not { } u || updating) return;
+        if (thunderstoreInstalling || uninstallingMod)
+        {
+            ReportUpdateError("Wait for the mod operation to finish before updating.");
+            return;
+        }
         if (launchingGame || gameRunning || AnyGameRunning())
         {
             ReportUpdateError("Close the game before updating ReStreet Mod Switcher.");

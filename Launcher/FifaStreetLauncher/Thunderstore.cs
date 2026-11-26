@@ -168,6 +168,11 @@ public partial class LauncherForm
 
     private async Task InstallThunderstoreAsync(string id)
     {
+        if (updating)
+        {
+            ReportThunderstoreInstall(id, "Wait for the launcher update to finish.", true);
+            return;
+        }
         if (thunderstoreInstalling || uninstallingMod || !thunderstorePackages.TryGetValue(id, out var package)) return;
         if (launchingGame || AnyGameRunning())
         {
