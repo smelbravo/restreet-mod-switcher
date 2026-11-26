@@ -49,7 +49,7 @@ internal static class Program
         launcher.Page = server;
         launcher.StartServices();
         bool launcherClosed = false;
-        ShowPage(server, "ReStreet Launcher", 1250, 760,
+        ShowPage(server, "ReStreet Mod Switcher", 1250, 760,
             window => launcher.CloseWindow = () => { launcherClosed = true; window?.Invoke(window.Close); },
             () => launcherClosed || !launcher.KeepBrowserOpen(server));
         launcher.Shutdown();

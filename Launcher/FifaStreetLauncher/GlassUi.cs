@@ -104,7 +104,7 @@ public partial class LauncherForm
             var options = new CoreWebView2EnvironmentOptions(
                 "--disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows");
             var env = await CoreWebView2Environment.CreateAsync(null, data, options);
-            var view = new WebView2 { Dock = DockStyle.Fill, DefaultBackgroundColor = Color.FromArgb(11, 12, 18) };
+            var view = new WebView2 { Dock = DockStyle.Fill, DefaultBackgroundColor = Color.FromArgb(13, 21, 26) };
             Controls.Add(view);
             view.BringToFront();
             await view.EnsureCoreWebView2Async(env);

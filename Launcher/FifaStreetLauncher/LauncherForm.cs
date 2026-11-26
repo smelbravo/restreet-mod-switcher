@@ -124,8 +124,8 @@ public partial class LauncherForm : Form, ISceneHost, IUiScaled
 
     public LauncherForm()
     {
-        Text = "ReStreet Launcher";
-        using (var icon = typeof(LauncherForm).Assembly.GetManifestResourceStream("fifastreet.ico")!)
+        Text = "ReStreet Mod Switcher";
+        using (var icon = typeof(LauncherForm).Assembly.GetManifestResourceStream("switcher.ico")!)
             Icon = new Icon(icon);
         ClientSize = new Size(1250, 720);
         scaler = new UiScaler(this, 1250, 720);
@@ -226,12 +226,15 @@ public partial class LauncherForm : Form, ISceneHost, IUiScaled
         using (var small = new Font(StreetTheme.CondensedFamily, 17, FontStyle.Bold, GraphicsUnit.Pixel))
         using (var yellow = new SolidBrush(StreetTheme.Yellow))
             StreetTheme.DrawSpaced(g, "FIFA STREET 2012 RECOMPILED", small, yellow, new PointF(Left, 56), 3.6f);
-        StreetTheme.DrawWordmark(g, "ReStreet", new PointF(Left, 88), 178, StreetTheme.Ink);
+        StreetTheme.DrawWordmark(g, "ReStreet", new PointF(Left, 88), 127, StreetTheme.Ink);
+        using (var subtitle = new Font(StreetTheme.CondensedFamily, 36, FontStyle.Bold, GraphicsUnit.Pixel))
+        using (var yellow = new SolidBrush(StreetTheme.Yellow))
+            StreetTheme.DrawSpaced(g, "MOD SWITCHER", subtitle, yellow, new PointF(Left, 198), 3.6f);
         var tag = new RectangleF(Left, 240, 270, 36);
         using (var bar = new SolidBrush(StreetTheme.Yellow)) g.FillPolygon(bar, StreetTheme.Slant(tag, 12));
         using (var tagFont = new Font(StreetTheme.CondensedFamily, 18, FontStyle.Bold, GraphicsUnit.Pixel))
         using (var dark = new SolidBrush(StreetTheme.YellowDark))
-            StreetTheme.DrawSpaced(g, "V" + LauncherVersion + " · ONLINE BETA", tagFont, dark, new PointF(Left + 14, 246), 2.8f);
+            StreetTheme.DrawSpaced(g, "V" + SwitcherVersion + " · RESTREET " + LauncherVersion, tagFont, dark, new PointF(Left + 14, 246), 2.8f);
 
         using var name = new Font("Segoe UI", 15, FontStyle.Regular, GraphicsUnit.Pixel);
         StreetTheme.DrawLabelValue(g, "Ported by:", "SamuelitoDaVila", name, StreetTheme.Ink, StreetTheme.Ink, Left, 642);
@@ -1118,7 +1121,7 @@ displayModeBox.SelectedIndexChanged += (_, _) => { UpdateRefreshRates(); UpdateS
                 "A shortcut was created on your desktop: ReStreet (direct play)." + Environment.NewLine + Environment.NewLine +
                 "It starts the game straight away with the settings you have now. " +
                 "To change settings later, open the launcher normally and click Shortcut again to refresh it.",
-                "ReStreet Launcher", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                "ReStreet Mod Switcher", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         catch (Exception ex)
         {
@@ -1208,7 +1211,7 @@ displayModeBox.SelectedIndexChanged += (_, _) => { UpdateRefreshRates(); UpdateS
                 MessageBox.Show(
                     $"The {graphicsApi} graphics backend is missing.\n\n" +
                     $"Expected files in:\n{backendDirectory}",
-                    "ReStreet Launcher",
+                    "ReStreet Mod Switcher",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
                 return;
@@ -1718,7 +1721,7 @@ startInfo.Environment["REX_DRAW_RESOLUTION_SCALE_Y"] =
 
         MessageBox.Show(
             message,
-            "ReStreet Launcher",
+            "ReStreet Mod Switcher",
             MessageBoxButtons.OK,
             MessageBoxIcon.Error
         );

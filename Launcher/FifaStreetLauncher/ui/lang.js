@@ -7,7 +7,13 @@
   const COL = {'pt-PT': 0, 'pt-BR': 0, es: 1, fr: 2, de: 3, it: 4};
   // English: [Português (Brasil), Español, Français, Deutsch, Italiano]
   const D = {
-    "Double-click a mod to open its page.": ["Dê dois cliques em um mod para abrir a página.", "Haz doble clic en un mod para abrir su página.", "Double-cliquez sur un mod pour ouvrir sa page.", "Doppelklicke auf einen Mod, um seine Seite zu öffnen.", "Fai doppio clic su una mod per aprirne la pagina."],
+    "Active profile": ["Perfil ativo", "Perfil activo", "Profil actif", "Aktives Profil", "Profilo attivo"],
+    "Manage mods": ["Gerenciar mods", "Gestionar mods", "Gérer les mods", "Mods verwalten", "Gestisci mod"],
+    "Profiles": ["Perfis", "Perfiles", "Profils", "Profile", "Profili"],
+    "Installed mods": ["Mods instalados", "Mods instalados", "Mods installés", "Installierte Mods", "Mod installate"],
+    "Discover mods": ["Descobrir mods", "Descubrir mods", "Découvrir des mods", "Mods entdecken", "Scopri mod"],
+    "Use profile": ["Usar perfil", "Usar perfil", "Utiliser le profil", "Profil verwenden", "Usa profilo"],
+    "No Thunderstore mods installed yet.": ["Ainda não há mods do Thunderstore instalados.", "Todavía no hay mods de Thunderstore instalados.", "Aucun mod Thunderstore installé pour le moment.", "Noch keine Thunderstore-Mods installiert.", "Nessuna mod Thunderstore installata."],
     "Updated squads and kits": ["Elencos e uniformes atualizados", "Plantillas y equipaciones actualizadas", "Effectifs et maillots actualisés", "Aktualisierte Kader und Trikots", "Rose e divise aggiornate"],
     "Download mod": ["Baixar mod", "Descargar mod", "Télécharger le mod", "Mod herunterladen", "Scarica la mod"],
     "View original post": ["Ver publicação original", "Ver publicación original", "Voir la publication originale", "Originalbeitrag ansehen", "Vedi il post originale"],
@@ -754,6 +760,8 @@
   }
 
   const PT_PT = {
+    "Manage mods": "Gerir mods",
+    "Screenshots": "Capturas de ecrã",
     "Double-click a mod to open its page.": "Faz duplo clique num mod para abrir a sua página.",
     "Updated squads and kits": "Plantéis e equipamentos atualizados",
 

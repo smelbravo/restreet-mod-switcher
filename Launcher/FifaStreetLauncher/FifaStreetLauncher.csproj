@@ -7,12 +7,14 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <Version>0.2.3</Version>
-    <ApplicationIcon>fifastreet.ico</ApplicationIcon>
+    <ApplicationIcon>switcher.ico</ApplicationIcon>
+    <Product>ReStreet Mod Switcher</Product>
+    <Description>ReStreet Mod Switcher</Description>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="cover.jpg" LogicalName="cover.jpg" />
-    <EmbeddedResource Include="fifastreet.ico" LogicalName="fifastreet.ico" />
+    <EmbeddedResource Include="switcher.ico" LogicalName="switcher.ico" />
     <Compile Include="..\..\Installer\FifaStreetSetupTool\ThemeKit.cs" Link="ThemeKit.cs" />
     <Compile Include="..\..\Installer\FifaStreetSetupTool\ThirdParty\LzxDecoder.cs" Link="ThirdParty\LzxDecoder.cs" />
     <Compile Include="..\..\Tools\ReStreetAssetScan\Textures.cs" Link="Textures.cs" />

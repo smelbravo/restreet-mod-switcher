@@ -15,23 +15,33 @@ internal static class SwitcherSetup
 {
     private const string SetupUrl = "https://github.com/samuelit0davila/fifa-street-pc-port/releases/download/v2.1.5-online-beta/ReStreet-2.1.5-Setup.exe";
     private const string SetupHash = "51A69D52DCDFB4207B15292A67DB8E155D8BA4EA5A35AC0BEDD157CB2EE37DEE";
-    private const string LauncherName = "FifaStreetLauncher.exe";
+    internal const string LauncherName = "FifaStreetLauncher.exe";
 
     [STAThread]
     private static int Main(string[] args)
     {
         Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
         try
         {
-            if (args.Length == 0) return RunInteractive();
+            string destination = null;
+            int? launcherPid = null;
+            if (args.Length != 0)
+            {
+                int pid;
+                if (args.Length != 3 || args[0] != "--auto-update" || !int.TryParse(args[2], out pid) || pid <= 0)
+                    throw new ArgumentException("Invalid update arguments.");
 
-            int launcherPid;
-            if (args.Length != 3 || args[0] != "--auto-update" || !int.TryParse(args[2], out launcherPid) || launcherPid <= 0)
-                throw new ArgumentException("Invalid update arguments.");
+                destination = Path.GetFullPath(args[1]);
+                RequireInstallation(destination);
+                launcherPid = pid;
+            }
 
-            string destination = Path.GetFullPath(args[1]);
-            RequireInstallation(destination);
-            return RunSetup(destination, null, launcherPid);
+            using (var window = new SwitcherSetupForm(destination, launcherPid))
+            {
+                Application.Run(window);
+                return window.Result;
+            }
         }
         catch (Exception error)
         {
@@ -40,70 +50,38 @@ internal static class SwitcherSetup
         }
     }
 
-    private static int RunInteractive()
+    internal static string ResolveDestination(string input, string iso, out bool updating)
     {
-        using (var folder = new FolderBrowserDialog { Description = "Select your ReStreet Mod Switcher folder to update, or an empty folder for a fresh installation." })
-        {
-            if (folder.ShowDialog() != DialogResult.OK) return 0;
-            string destination = Path.GetFullPath(folder.SelectedPath);
-            if (Directory.GetFileSystemEntries(destination).Length > 0)
-            {
-                RequireInstallation(destination);
-                return RunSetup(destination, null, null);
-            }
-
-            using (var iso = new OpenFileDialog { Title = "Select your FIFA Street (2012) Xbox 360 ISO", Filter = "Xbox 360 ISO (*.iso)|*.iso" })
-            {
-                return iso.ShowDialog() == DialogResult.OK ? RunSetup(destination, iso.FileName, null) : 0;
-            }
-        }
+        if (string.IsNullOrWhiteSpace(input))
+            throw new ArgumentException("Choose the installation folder.");
+        var destination = Path.GetFullPath(input.Trim());
+        EnsureOrdinaryPath(destination);
+        if (!Directory.Exists(destination))
+            throw new DirectoryNotFoundException("Choose an existing folder. Create an empty folder for a fresh installation.");
+        updating = Directory.EnumerateFileSystemEntries(destination).Any();
+        if (updating) RequireInstallation(destination);
+        else if (!File.Exists(iso) || !string.Equals(Path.GetExtension(iso), ".iso", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Choose your FIFA Street (2012) Xbox 360 ISO.");
+        return destination;
     }
 
-    private static int RunSetup(string destination, string iso, int? launcherPid)
+    internal static async Task ApplyAsync(string destination, string iso, int? launcherPid, Action<string, int?> report)
     {
-        bool updating = iso == null;
-        int result = 1;
-        using (var window = new Form { Text = "ReStreet Mod Switcher Setup", Width = 520, Height = 155, MaximizeBox = false, StartPosition = FormStartPosition.CenterScreen })
+        if (iso == null)
         {
-            var status = new Label { Dock = DockStyle.Fill, Padding = new Padding(16), Text = "Preparing setup…" };
-            window.Controls.Add(status);
-            bool installing = true;
-            window.FormClosing += (sender, e) => { if (installing) e.Cancel = true; };
-            window.Shown += async (sender, e) =>
-            {
-                try
-                {
-                    if (updating)
-                    {
-                        status.Text = "Updating the Mod Switcher launcher…";
-                        await Task.Run(() => UpdateLauncher(destination, launcherPid));
-                    }
-                    else await InstallFreshAsync(destination, iso, status);
-
-                    if (launcherPid.HasValue)
-                    {
-                        using (Process.Start(new ProcessStartInfo(Path.Combine(destination, LauncherName)) { WorkingDirectory = destination })) { }
-                    }
-                    else
-                        MessageBox.Show(window, "Setup complete. Open FifaStreetLauncher.exe in the installation folder.", window.Text);
-                    result = 0;
-                }
-                catch (Exception error)
-                {
-                    MessageBox.Show(window, error.Message, window.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                finally
-                {
-                    installing = false;
-                    window.Close();
-                }
-            };
-            Application.Run(window);
+            report("Updating the Mod Switcher launcher…", null);
+            await Task.Run(() => UpdateLauncher(destination, launcherPid));
+            return;
         }
-        return result;
+        await InstallFreshAsync(destination, iso, report);
     }
 
-    private static async Task InstallFreshAsync(string destination, string iso, Label status)
+    internal static void OpenLauncher(string destination)
+    {
+        using (Process.Start(new ProcessStartInfo(Path.Combine(destination, LauncherName)) { WorkingDirectory = destination })) { }
+    }
+
+    private static async Task InstallFreshAsync(string destination, string iso, Action<string, int?> report)
     {
         var workspace = Path.Combine(Path.GetTempPath(), "ReStreetSwitcher-" + Guid.NewGuid().ToString("N"));
         try
@@ -115,14 +93,15 @@ internal static class SwitcherSetup
             {
                 client.Headers[HttpRequestHeader.UserAgent] = "ReStreet-Mod-Switcher-Setup";
                 client.DownloadProgressChanged += (source, progress) =>
-                    status.Text = "Downloading the ReStreet base installer… " + progress.ProgressPercentage + "%";
+                    report("Downloading the ReStreet base installer… " + progress.ProgressPercentage + "%", progress.ProgressPercentage);
+                report("Downloading the ReStreet base installer…", null);
                 await client.DownloadFileTaskAsync(new Uri(SetupUrl), setup);
             }
-            status.Text = "Verifying the download…";
+            report("Verifying the download…", null);
             await Task.Run(() => VerifySetup(setup));
-            status.Text = "Extracting FIFA Street from your ISO. This may take several minutes.";
+            report("Extracting FIFA Street from your ISO. This may take several minutes.", null);
             await Task.Run(() => InstallBase(setup, iso, destination));
-            status.Text = "Installing the Mod Switcher launcher…";
+            report("Installing the Mod Switcher launcher…", null);
             await Task.Run(() => ExtractLauncher(destination));
         }
         finally
