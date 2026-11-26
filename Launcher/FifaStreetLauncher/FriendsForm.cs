@@ -217,7 +217,7 @@ internal sealed class FriendsForm : Form, ISceneHost, IUiScaled
         this.me = me;
         this.key = key;
         Text = "ReStreet - Friends";
-        using (var icon = typeof(FriendsForm).Assembly.GetManifestResourceStream("fifastreet.ico")!)
+        using (var icon = typeof(FriendsForm).Assembly.GetManifestResourceStream("switcher.ico")!)
             Icon = new Icon(icon);
         ClientSize = new Size(930, 610);
         scaler = new UiScaler(this, 930, 610);

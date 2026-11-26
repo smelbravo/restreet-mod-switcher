@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.VisualBasic.FileIO;
 
 namespace FifaStreetLauncher;
 
@@ -13,9 +14,13 @@ public partial class LauncherForm
 {
     private string classicGamePath = "";
     private string street2026GamePath = "";
+    private bool manualModSetup;
+    private readonly HashSet<string> removedManualProfiles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ThunderstoreModProfile> communityProfiles = new(StringComparer.OrdinalIgnoreCase);
     private string modProfile = "vanilla";
     private bool launchingGame;
+    private bool uninstallingMod;
+    private bool ManualModSetupLocked => launchingGame || gameRunning || thunderstoreInstalling || uninstallingMod || updating;
     private bool UseMod => modProfile != "vanilla" && PageConnected;
     private bool IsBuiltInMod => modProfile is "classic" or "street2026";
     private string ModGamePath => modProfile switch
@@ -31,12 +36,18 @@ public partial class LauncherForm
         if (!UseMod) return root;
         if (IsBuiltInMod)
             return Path.Combine(root, "ModProfiles", modProfile == "street2026" ? "FifaStreet2026" : "FifaStreetClassic");
-        string packageKey = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(modProfile.ToLowerInvariant())));
+        string packageKey = ThunderstoreProfileHash(modProfile);
         return Path.Combine(root, "ModProfiles", "Thunderstore", packageKey);
     }
 
+    private static string ThunderstoreProfileHash(string id) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(id.ToLowerInvariant())));
+
+    private static string ThunderstoreProfileKey(string id) => ThunderstoreProfileHash(id)[..16];
+
     private void LoadModProfiles(LauncherSettings settings)
     {
+        manualModSetup = settings.ManualModSetup;
+        removedManualProfiles.UnionWith((settings.RemovedManualProfiles ?? []).Where(IsManualProfile));
         classicGamePath = settings.ClassicGamePath ?? "";
         street2026GamePath = settings.Street2026GamePath ?? "";
         foreach (var profile in settings.ThunderstoreProfiles ?? [])
@@ -57,23 +68,24 @@ public partial class LauncherForm
         }
         classicGamePath = ResolveBuiltInGameFolder("classic", "Classic", classicGamePath);
         street2026GamePath = ResolveBuiltInGameFolder("street2026", "2026", street2026GamePath);
-        modProfile = settings.ModProfile switch
+        string? selectedId = settings.ModProfile switch
         {
-            "classic" => "classic",
-            "street2026" => "street2026",
             null when settings.ClassicSelected => "classic",
-            string selected when communityProfiles.TryGetValue(selected, out var profile) => profile.Id,
-            _ => "vanilla"
+            _ => settings.ModProfile
         };
+        modProfile = InstalledMods().FirstOrDefault(mod => mod.Id.Equals(selectedId, StringComparison.OrdinalIgnoreCase))?.Id ?? "vanilla";
     }
 
     private string ResolveBuiltInGameFolder(string profileId, string folder, string configured)
     {
-        if (HasModGameFiles(configured)) return configured;
+        if (removedManualProfiles.Contains(profileId)) return "";
+        if (HasModGameFiles(configured) && !SameGameFolder(configured, gamePathBox.Text.Trim()) &&
+            !IsOtherModFolder(configured, profileId))
+            return configured;
         string local = Path.Combine(AppContext.BaseDirectory, "Mods", folder, "Game");
         return HasModGameFiles(local) && !SameGameFolder(local, gamePathBox.Text.Trim()) && !IsOtherModFolder(local, profileId)
             ? local
-            : configured;
+            : "";
     }
 
     private static bool HasModGameFiles(string path) =>
@@ -82,36 +94,187 @@ public partial class LauncherForm
 
     private void SelectModProfile(string? id)
     {
-        if (launchingGame || AnyGameRunning()) return;
-        string? selected = id is "vanilla" or "classic" or "street2026" ? id
-            : id != null ? communityProfiles.GetValueOrDefault(id)?.Id : null;
+        if (launchingGame || gameRunning || uninstallingMod || updating || AnyGameRunning()) return;
+        string? selected = id == "vanilla" ? id
+            : InstalledMods().FirstOrDefault(mod => mod.Id.Equals(id, StringComparison.OrdinalIgnoreCase))?.Id;
         if (selected == null || selected == modProfile) return;
         string previous = modProfile;
         modProfile = selected;
         if (!SaveModSettings()) modProfile = previous;
     }
 
-    private void BrowseModGame()
+    private void ToggleManualModSetup(bool enabled)
     {
-        if (!UseMod || launchingGame || AnyGameRunning()) return;
-        string profileId = modProfile;
-        string previous = ModGamePath;
+        if (enabled == manualModSetup) return;
+        manualModSetup = enabled;
+        if (!SaveModSettings()) manualModSetup = !enabled;
+    }
+
+    private void BrowseModGame(string profileId)
+    {
+        if (!manualModSetup || !IsManualProfile(profileId) || ManualModSetupLocked || AnyGameRunning()) return;
+        string previous = profileId == "classic" ? classicGamePath : street2026GamePath;
         string? selected = PickModGameFolder(profileId, previous);
-        if (selected == null || modProfile != profileId) return;
-        switch (profileId)
+        if (selected == null || !manualModSetup || ManualModSetupLocked) return;
+        bool wasRemoved = removedManualProfiles.Remove(profileId);
+        SetManualGamePath(profileId, selected);
+        if (!SaveModSettings())
         {
-            case "classic":
-                classicGamePath = selected;
-                if (!SaveModSettings()) classicGamePath = previous;
-                break;
-            case "street2026":
-                street2026GamePath = selected;
-                if (!SaveModSettings()) street2026GamePath = previous;
-                break;
-            default:
-                if (communityProfiles.TryGetValue(profileId, out var profile))
-                    SetCommunityProfile(profile with { GamePath = selected });
-                break;
+            SetManualGamePath(profileId, previous);
+            if (wasRemoved) removedManualProfiles.Add(profileId);
+        }
+    }
+
+    private static bool IsManualProfile(string id) => id is "classic" or "street2026";
+
+    private void SetManualGamePath(string id, string path)
+    {
+        if (id == "classic") classicGamePath = path;
+        else street2026GamePath = path;
+    }
+
+    private sealed record InstalledMod(string Id, string Name, string Path, bool Manual, string? Author = null, string? Version = null);
+
+    private IEnumerable<InstalledMod> InstalledMods()
+    {
+        if (HasModGameFiles(classicGamePath))
+            yield return new("classic", "FIFA Street Classic", classicGamePath, true);
+        if (HasModGameFiles(street2026GamePath))
+            yield return new("street2026", "FIFA Street 2026", street2026GamePath, true);
+        foreach (var profile in communityProfiles.Values)
+            if (HasModGameFiles(profile.GamePath))
+                yield return new(profile.Id, profile.Name, profile.GamePath, false, profile.Author, profile.Version);
+    }
+
+    private bool CanRecycleModFiles(InstalledMod mod, IReadOnlyList<InstalledMod> installed)
+    {
+        if (!Path.IsPathFullyQualified(mod.Path)) return false;
+        string game = Path.TrimEndingDirectorySeparator(Path.GetFullPath(mod.Path));
+        string modsRoot = Path.Combine(AppContext.BaseDirectory, "Mods");
+        if (mod.Manual)
+        {
+            if (!SameGameFolder(game, Path.Combine(modsRoot, mod.Id == "classic" ? "Classic" : "2026", "Game")))
+                return false;
+        }
+        else
+        {
+            string? package = Path.GetDirectoryName(game);
+            if (package == null || !Path.GetFileName(game).Equals("Game", StringComparison.OrdinalIgnoreCase) ||
+                !SameGameFolder(Path.GetDirectoryName(package) ?? "", Path.Combine(modsRoot, "Thunderstore")))
+                return false;
+            string[] parts = Path.GetFileName(package).Split('-');
+            if (parts.Length != 3 || !parts[0].Equals(ThunderstoreProfileKey(mod.Id), StringComparison.OrdinalIgnoreCase) ||
+                !VersionSegment.IsMatch(parts[1]) || !Guid.TryParseExact(parts[2], "N", out _))
+                return false;
+        }
+
+        try
+        {
+            if (OverlapsGameFolder(game, Path.Combine(AppContext.BaseDirectory, "Game")) ||
+                OverlapsGameFolder(game, gamePathBox.Text.Trim()) ||
+                OverlapsGameFolder(game, exePathBox.Text.Trim()) ||
+                OverlapsGameFolder(game, SavesRoot()) ||
+                installed.Any(other => other.Id != mod.Id && OverlapsGameFolder(game, other.Path)))
+                return false;
+            for (string? path = game; path != null; path = Path.GetDirectoryName(path))
+                if ((File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0) return false;
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            return false;
+        }
+    }
+
+    private static bool OverlapsGameFolder(string first, string second)
+    {
+        if (string.IsNullOrWhiteSpace(second)) return false;
+        second = Path.TrimEndingDirectorySeparator(Path.GetFullPath(second));
+        return SameGameFolder(first, second) ||
+            first.StartsWith(Path.EndsInDirectorySeparator(second) ? second : second + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
+            second.StartsWith(first + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task UninstallModAsync(string id, string? path, bool recycleFiles)
+    {
+        void Report(string note, bool error = false, string? recoveryPath = null) =>
+            PostToPage(new { type = "modUninstall", id, note, error, recoveryPath });
+
+        if (updating)
+        {
+            Report("Wait for the launcher update to finish.", true);
+            return;
+        }
+        if (ManualModSetupLocked || AnyGameRunning())
+        {
+            Report("Close the game and wait for any mod operation to finish.", true);
+            return;
+        }
+        var installed = InstalledMods().ToArray();
+        var mod = installed.FirstOrDefault(mod => mod.Id == id);
+        if (mod == null || path != mod.Path || recycleFiles != CanRecycleModFiles(mod, installed))
+        {
+            Report("The mod changed. Refresh the list and try again.", true);
+            PushGlassState(true);
+            return;
+        }
+
+        uninstallingMod = true;
+        string? staged = null;
+        bool saved = false;
+        try
+        {
+            string gamePath = Path.TrimEndingDirectorySeparator(Path.GetFullPath(mod.Path));
+            using var installLock = recycleFiles && !mod.Manual ? LockThunderstoreInstalls() : null;
+            if (recycleFiles)
+            {
+                string target = Path.Combine(Path.GetDirectoryName(gamePath)!, ".uninstall-" + Guid.NewGuid().ToString("N"));
+                Directory.Move(gamePath, target);
+                staged = target;
+            }
+
+            string previousSelection = modProfile;
+            var package = communityProfiles.GetValueOrDefault(id);
+            if (mod.Manual)
+            {
+                SetManualGamePath(id, "");
+                removedManualProfiles.Add(id);
+            }
+            else communityProfiles.Remove(id);
+            if (modProfile == id) modProfile = "vanilla";
+
+            try { SaveSettings(); }
+            catch (IOException ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex);
+                modProfile = previousSelection;
+                if (mod.Manual)
+                {
+                    SetManualGamePath(id, mod.Path);
+                    removedManualProfiles.Remove(id);
+                }
+                else if (package != null) communityProfiles.Add(id, package);
+                if (staged != null) Directory.Move(staged, gamePath);
+                Report("Could not save the mod change.", true);
+                return;
+            }
+            saved = true;
+            PushGlassState(true);
+            if (staged != null)
+                await Task.Run(() => FileSystem.DeleteDirectory(staged, UIOption.OnlyErrorDialogs,
+                    RecycleOption.SendToRecycleBin, UICancelOption.ThrowException));
+            Report(recycleFiles ? "Mod uninstalled." : "Mod removed from the launcher.");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or OperationCanceledException or NotSupportedException)
+        {
+            System.Diagnostics.Debug.WriteLine(ex);
+            Report(saved ? "The profile was removed, but its files could not be recycled." : "Could not uninstall the mod.",
+                true, staged);
+        }
+        finally
+        {
+            uninstallingMod = false;
+            PushGlassState(true);
         }
     }
 

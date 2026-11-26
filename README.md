@@ -6,7 +6,7 @@
 
 ## English
 
-ReStreet Mod Switcher is a Windows launcher fork of [SamuelitoDaVila’s ReStreet](https://github.com/samuelit0davila/fifa-street-pc-port), the PC port of FIFA Street (2012). It adds a **Mods** tab for switching between **Vanilla**, **FIFA Street Classic** and **FIFA Street 2026**. Each mod runs offline with its own game folder and World Tour saves. Click a card to select its profile and double-click it to open its gallery.
+ReStreet Mod Switcher is a Windows launcher fork of [SamuelitoDaVila’s ReStreet](https://github.com/samuelit0davila/fifa-street-pc-port), the PC port of FIFA Street (2012). Use **Mods → Profiles** to switch between **Vanilla** and your installed mods. Each mod runs offline with its own game folder and World Tour saves.
 
 ### Install from GitHub Releases
 
@@ -40,7 +40,9 @@ Mod authors can follow the [Thunderstore packaging guide](docs/THUNDERSTORE-PACK
    ```
 
    Confirm that the installer identifies `Mods\2026\Game` as its target. If your package has a different installer or does not support `FS_DOCS`, check its instructions and back up your saves before proceeding. [Author’s download post](https://x.com/Jespindola15_/status/2114894270738129390)
-4. Open **Mods**, select each mod and press **Select mod Game folder** to set its path. To change profiles, exit the game, select a card and press **Play**. A new mod profile may ask you to create its own save. Vanilla uses `Documents\fifastreet` by default. Mod saves are under its `ModProfiles` subfolder.
+4. The launcher detects the standard folders at startup. To register a different folder, turn on **Advanced → Show manual mod setup**, then use **Mods → Installed mods → Select mod Game folder**. Change profiles with the game closed. Vanilla uses `Documents\fifastreet` by default. Mod saves are under its `ModProfiles` subfolder.
+
+Use **Mods → Installed mods → Uninstall** to remove a mod. The launcher sends managed game folders to the Recycle Bin and keeps World Tour saves. For external folders, it removes the profile and leaves the files in place.
 
 The launcher includes a European Portuguese UI. The in-game PT-PT option also needs a separate `locale_ptpt.big` in the chosen profile’s `Game\data\loc`. This source checkout does not include those game archives.
 
@@ -50,7 +52,7 @@ In v0.2.0, select **Vanilla** and open **Online** to set your nickname and regio
 
 ## Português de Portugal
 
-O ReStreet Mod Switcher é um fork para Windows do [ReStreet de SamuelitoDaVila](https://github.com/samuelit0davila/fifa-street-pc-port), o port de FIFA Street (2012) para PC. Acrescenta a aba **Mods** para alternar entre **Vanilla**, **FIFA Street Classic** e **FIFA Street 2026**. Cada mod arranca offline com a sua própria pasta de jogo e dados do Tour Mundial. Um clique seleciona o perfil e um duplo clique abre a galeria.
+O ReStreet Mod Switcher é um fork para Windows do [ReStreet de SamuelitoDaVila](https://github.com/samuelit0davila/fifa-street-pc-port), o port de FIFA Street (2012) para PC. Usa **Mods → Perfis** para alternar entre **Vanilla** e os mods instalados. Cada mod arranca offline com a sua própria pasta de jogo e dados do Tour Mundial.
 
 ### Instalar a partir das Releases do GitHub
 
@@ -84,7 +86,9 @@ Os autores de mods podem seguir o [tutorial de publicação no Thunderstore](doc
    ```
 
    Confirma que o instalador identifica `Mods\2026\Game` como destino. Se o pacote trouxer outro instalador ou não aceitar `FS_DOCS`, verifica as instruções e faz uma cópia de segurança dos saves antes de avançar. [Publicação de download do autor](https://x.com/Jespindola15_/status/2114894270738129390)
-4. Abre **Mods**, seleciona cada mod e usa **Selecionar pasta Game do mod** para indicar o caminho. Para trocares de perfil, fecha o jogo, escolhe um cartão e carrega em **Jogar**. Um perfil novo pode pedir para criar um ficheiro de gravação próprio. O Vanilla usa `Documentos\fifastreet` por defeito. Os saves dos mods ficam na subpasta `ModProfiles`.
+4. O launcher deteta as pastas padrão ao arrancar. Para registares outra pasta, ativa **Avançado → Mostrar configuração de mods manuais** e usa **Mods → Mods instalados → Selecionar pasta Game do mod**. Troca de perfil com o jogo fechado. O Vanilla usa `Documentos\fifastreet` por defeito. Os saves dos mods ficam na subpasta `ModProfiles`.
+
+Usa **Mods → Mods instalados → Desinstalar** para remover um mod. O launcher envia as pastas de jogo que gere para a Reciclagem e mantém os dados do Tour Mundial. Para pastas externas, remove o perfil e conserva os ficheiros no local.
 
 O launcher inclui uma interface em português de Portugal. A opção PT-PT dentro do jogo também precisa de um ficheiro `locale_ptpt.big` na pasta `Game\data\loc` do perfil escolhido. Estes ficheiros de jogo são externos ao repositório.
 
@@ -94,7 +98,7 @@ Na v0.2.0, seleciona **Vanilla** e abre **Online** para definires o teu nick e a
 
 ## Español
 
-ReStreet Mod Switcher es un fork para Windows del launcher de ReStreet, la adaptación de FIFA Street (2012) para PC. La pestaña **Mods** permite alternar entre **Vanilla**, **FIFA Street Classic** y **FIFA Street 2026**. Cada mod se ejecuta sin conexión y tiene su propia carpeta de juego y sus propias partidas guardadas de World Tour. Haz clic en una tarjeta para seleccionar el perfil o haz doble clic para abrir su galería. [ReStreet de SamuelitoDaVila](https://github.com/samuelit0davila/fifa-street-pc-port)
+ReStreet Mod Switcher es un fork para Windows del launcher de ReStreet, la adaptación de FIFA Street (2012) para PC. Usa **Mods → Perfiles** para alternar entre **Vanilla** y los mods instalados. Cada mod se ejecuta sin conexión con su propia carpeta de juego y sus propias partidas guardadas de World Tour. [ReStreet de SamuelitoDaVila](https://github.com/samuelit0davila/fifa-street-pc-port)
 
 ### Instalar desde GitHub Releases
 
@@ -128,7 +132,9 @@ Los autores de mods pueden seguir la [guía de publicación en Thunderstore](doc
    ```
 
    Confirma que el instalador indica `Mods\2026\Game` como destino. Si el paquete usa otro instalador o no admite `FS_DOCS`, consulta sus instrucciones y guarda una copia de seguridad antes de instalar. [Descargar ZIP](https://drive.google.com/file/d/1XKbAZtVdSmj5AMh3z9BkJjzxTupsrrLO/view) · [Publicación del autor](https://x.com/Jespindola15_/status/2114894270738129390)
-4. Abre **Mods**, elige cada mod y usa **Seleccionar carpeta Game del mod** para indicar la ruta. Para cambiar de perfil, sal del juego, selecciona una tarjeta y pulsa **Jugar**. Es posible que un perfil nuevo te pida crear su propia partida guardada. Vanilla usa `Documentos\fifastreet` por defecto. Los mods guardan sus partidas en la subcarpeta `ModProfiles`.
+4. El launcher detecta las carpetas estándar al arrancar. Para registrar otra carpeta, activa **Avanzado → Mostrar configuración de mods manuales** y usa **Mods → Mods instalados → Seleccionar carpeta Game del mod**. Cambia de perfil con el juego cerrado. Vanilla usa `Documentos\fifastreet` por defecto. Los mods guardan sus partidas en la subcarpeta `ModProfiles`.
+
+Usa **Mods → Mods instalados → Desinstalar** para quitar un mod. El launcher envía las carpetas de juego que gestiona a la papelera y conserva las partidas de World Tour. Para carpetas externas, quita el perfil y deja los archivos en su sitio.
 
 El launcher también incluye una interfaz en portugués de Portugal. La opción PT-PT dentro del juego necesita el archivo `locale_ptpt.big` en `Game\data\loc` del perfil elegido. Estos archivos del juego son externos al repositorio.
 

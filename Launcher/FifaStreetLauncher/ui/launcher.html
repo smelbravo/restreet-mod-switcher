@@ -1,8 +1,7 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Launcher - ReStreet</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>ReStreet Mod Switcher</title>
 <link href="fonts.css" rel="stylesheet">
 <style>
-/* ReStreet: match tickets. Stadium-night ground with 1 px seams; the ways into a match are printed tickets
-   (cream stock, ruled hairlines, perforated stub, carbon figures, stamp red); settings are plain working panels. */
+/* Shared layout for the launcher pages and dialogs. */
 :root{
   --night:#0f1117; --panel:#161922; --panel-2:#1c202b; --seam:#272b37; --seam-2:#343949;
   --ink:#eef0f5; --muted:#9298a8; --faint:#80869a;
@@ -39,7 +38,6 @@ button{font:inherit;color:inherit}
 /* Rail */
 .side{border-right:1px solid var(--seam);padding:18px 14px 14px;display:flex;flex-direction:column;gap:2px;min-height:0;overflow-y:auto;scrollbar-width:none}
 .side::-webkit-scrollbar{display:none}
-.logo{font:800 36px/1 var(--display);letter-spacing:.5px;padding:0 8px 10px}.logo b{color:var(--brand)}
 .grp{font:700 11px Archivo;letter-spacing:2.2px;color:var(--faint);padding:14px 10px 6px;text-transform:uppercase}
 .nav{display:flex;align-items:center;gap:11px;width:100%;padding:9px 10px;border:0;border-radius:8px;background:transparent;color:#aab0bf;font:600 14px Archivo;text-align:left;cursor:pointer;transition:background .15s,color .15s}
 .nav:hover{background:var(--panel);color:#fff}
@@ -81,11 +79,7 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 .lbl{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:700 11px Archivo;letter-spacing:1.9px;color:var(--stock-muted);text-transform:uppercase}
 
 /* Home */
-#p-home.on{grid-template-columns:minmax(0,1fr) 264px}
 .home{padding:20px 22px 24px;display:flex;flex-direction:column;gap:18px;overflow:auto;min-height:0}
-.season h1{font:800 clamp(44px,5.4vw,68px)/.88 var(--display);text-transform:uppercase;letter-spacing:.3px}
-.season h1 span{color:var(--red)}
-.season p{color:var(--stock-muted);margin:10px 0 0;max-width:60ch;font-size:14px}
 .fields{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1fr) minmax(0,1.1fr) minmax(0,1.15fr);border:1px solid var(--rule);border-radius:8px;margin-top:16px}
 .fld{padding:9px 11px 10px;border-left:1px solid var(--rule);min-width:0}
 .fld .lbl{white-space:normal;overflow:visible;letter-spacing:1px;line-height:1.25}.fld:first-child{border-left:0}
@@ -94,16 +88,10 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 .fld .team{display:flex;align-items:center;gap:8px;margin-top:4px;min-width:0}
 .fld .team .crest{width:30px;height:30px}
 .fld .team b{font:800 17px/1.02 var(--display);letter-spacing:.3px;text-transform:uppercase;overflow-wrap:anywhere}
-.printline{display:flex;align-items:center;gap:14px;margin-top:14px;min-width:0}
-.barcode{flex:none;width:180px;height:28px;background:repeating-linear-gradient(90deg,var(--stock-ink) 0 2px,transparent 2px 4px,var(--stock-ink) 4px 5px,transparent 5px 8px,var(--stock-ink) 8px 11px,transparent 11px 13px)}
-.printline .ln{font:600 12px/1.45 var(--mono);color:var(--stock-muted);min-width:0}
-.printline .ln b{color:var(--carbon)}
 .stub .adm{font:800 30px/1 var(--display);letter-spacing:2px;text-transform:uppercase}
 .play{margin-top:auto;border:0;cursor:pointer;font:800 36px/1 var(--display);letter-spacing:5px;color:#fff;padding:16px 0 14px;border-radius:9px;background:var(--red);
   box-shadow:0 6px 16px rgba(0,0,0,.28);transition:transform .2s cubic-bezier(.16,1,.3,1),background .2s}
 .play:hover{background:#e22c44;transform:translateY(-1px)}.play:active{transform:translateY(1px)}
-.season.tear>.stub{animation:tear .5s cubic-bezier(.16,1,.3,1)}
-@keyframes tear{30%{transform:translateX(10px) rotate(2.5deg)}100%{transform:none}}
 .play[disabled]{background:#9b8f74;box-shadow:none;cursor:default;transform:none}
 .linkbtn{border:0;background:transparent;cursor:pointer;font:700 12.5px Archivo;color:var(--stock-muted);text-decoration:underline;text-underline-offset:3px}
 .linkbtn:hover{color:var(--stock-ink)}
@@ -112,13 +100,6 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 .rowhead h2{font:800 22px var(--display);letter-spacing:1px;text-transform:uppercase}
 .rowhead small{color:var(--muted);font-size:13px}
 .rowhead .linkbtn{margin-left:auto;color:var(--brand);text-decoration:none}
-.stands{border-left:1px solid var(--seam);padding:20px 16px;display:flex;flex-direction:column;gap:4px;min-height:0;overflow:auto}
-.stands h2{font:800 20px var(--display);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
-.stands .linkbtn{color:var(--brand);text-decoration:none;align-self:flex-start;margin-top:8px}
-
-.news{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:12px 16px;border:1px solid var(--seam);border-radius:10px;background:var(--panel)}
-.news .tagnew{font:800 11px Archivo;letter-spacing:1.4px;text-transform:uppercase;color:#111;background:var(--brand);padding:3px 8px;border-radius:4px}
-.news b{font-size:14px}.news .nsub{color:var(--muted);font-size:13px}
 /* Room tickets (Matches page and the Home row) */
 .tix{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
 .tix.row3{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -328,8 +309,6 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 #paText.bad{color:var(--red);font-weight:700}
 .tk .hd .lock{display:inline-flex;align-items:center;gap:4px;color:var(--red)}
 
-/* Narrow and short windows (Steam Deck is 1280x800) */
-@media (max-width:1180px){#p-home.on{grid-template-columns:minmax(0,1fr)}.stands{display:none}}
 /* Competitive */
 .rank{--stub:236px;margin-top:4px}
 .rk{display:flex;align-items:center;gap:16px;margin-top:12px}
@@ -374,11 +353,11 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 .hbadge b{display:block;font:800 18px var(--display);text-transform:uppercase;letter-spacing:.5px}.hbadge small{color:var(--muted);font:600 12px Archivo}
 @media (max-width:1180px){.crow{grid-template-columns:44px 44px minmax(0,1fr) 110px 80px}.crow .rec{display:none}}
 @media (max-width:1180px){.post{grid-template-columns:1fr 1fr 1fr}.post .go{grid-column:auto}}
-@media (max-width:1000px){.win{grid-template-columns:76px minmax(0,1fr)}.logo{font-size:22px;padding:0 0 10px;text-align:center}.logo span{display:none}
+@media (max-width:1000px){
   .grp,.credits,.nav .lb,.side .tg.side-tg>div:first-child,.side .me>div:not(.av){display:none}.nav{justify-content:center;position:relative}.nav .badge{position:absolute;top:2px;right:6px}.side .me{justify-content:center;padding:8px}
   .post{grid-template-columns:1fr 1fr}.post .go{grid-column:1/-1}.tix.row3{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}}
 @media (max-width:820px){.ticket{--stub:0px;grid-template-columns:1fr;-webkit-mask:none;mask:none}.ticket>.body{border-right:0;border-bottom:2px dashed var(--rule)}.ticket>.stub{border-radius:0 0 14px 14px}.fields{grid-template-columns:1fr 1fr}.fld:nth-child(3){border-left:0}.fld:nth-child(n+3){border-top:1px solid var(--rule)}#p-social.on{grid-template-columns:1fr}.people{display:none}}
-@media (max-height:760px){.side{padding-top:12px}.grp{padding-top:9px}.nav{padding:7px 10px}.credits{display:none}.home{gap:14px}.season h1{font-size:50px}}
+@media (max-height:760px){.side{padding-top:12px}.grp{padding-top:9px}.nav{padding:7px 10px}.credits{display:none}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
 .mod-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}
@@ -390,10 +369,7 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 .mod-card img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
 .mod-card strong,.mod-card small{display:block;margin:12px 12px 0}
 .mod-card small{margin:6px 12px 14px;color:#b6becd;line-height:1.4}
-.mod-details{background:#181b23;border:1px solid #363b48;border-radius:12px;padding:16px;margin-top:14px}
-#modPath{overflow-wrap:anywhere;margin-bottom:0}
 @media(max-width:780px){.mod-grid{grid-template-columns:repeat(auto-fit,minmax(155px,1fr))}}
-#p-mods.details-open .mod-grid,#p-mods.details-open .mod-intro,#p-mods.details-open #thunderstore{display:none}
 #thunderstore{margin:20px 0 24px;padding:16px 18px;background:var(--panel);border:1px solid var(--seam-2);border-radius:12px}
 .thunderstore-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 #thunderstoreTitle{font:800 27px/1 var(--display);letter-spacing:.5px;text-transform:uppercase}
@@ -446,9 +422,6 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 #modTeamsGrid{margin:12px 0}
 .mod-teams-header{display:flex;justify-content:space-between;align-items:center;gap:10px}
 #modTeamsSearch{width:100%}
-#p-mods.details-open #thunderstoreProfiles{display:none}
-#thunderstoreProfilesList{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
-#thunderstoreProfilesList button[aria-pressed=true]{border-color:var(--accent)}
 .mod-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin:16px 0}
 .mod-gallery button{padding:0;overflow:hidden;cursor:zoom-in}
 .mod-gallery img{display:block;width:100%;aspect-ratio:16/9;object-fit:contain;background:#0c0e13}
@@ -460,9 +433,6 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 .mod-card img{object-fit:contain;background:#101217}
 .mod-card strong{font-size:16px}
 .mod-card small{min-height:2.8em}
-.mod-details{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:14px 16px}
-.mod-details[hidden]{display:none}
-#modPath{flex-basis:100%;margin:4px 0 0}
 .mod-page-head{margin:16px 0 22px}
 #modTitle{font-size:28px;margin:14px 0 5px}
 #modDescription{color:#b6becd;max-width:66ch;line-height:1.55}
@@ -475,7 +445,6 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 .mod-arrow{font-size:24px;padding:6px 12px}
 #modPosition{color:#b6becd;font-variant-numeric:tabular-nums}
 
-.mod-hint{color:#b6becd;margin:8px 0 0}
 .mod-poster img{width:100%;height:100%;object-fit:cover}
 .mod-poster-copy{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:6% 5% 6% 48%;background:linear-gradient(90deg,transparent 25%,#10151bdc 55%,#10151b 100%);border-bottom:3px solid #f2c744}
 .mod-poster-copy b{color:#f2c744;font:800 clamp(18px,3vw,42px)/.95 "Saira Extra Condensed",sans-serif}
@@ -483,28 +452,33 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
 .mod-zoom-stage{height:min(73vh,720px);overflow:auto;display:block;background:#0b0d11}
 #modLightbox .mod-zoom-stage img{height:100%;width:100%;object-fit:contain;cursor:zoom-in}
 #modLightbox .mod-zoom-stage.zoomed img{height:auto;max-height:none;max-width:none;cursor:zoom-out}
-</style></head><body>
+</style>
+<link href="switcher.css" rel="stylesheet">
+</head><body>
 <div class="win" id="win">
-  <div class="titlebar" id="titlebar"><span class="ttl">RESTREET LAUNCHER</span>
+  <div class="titlebar" id="titlebar"><span class="ttl" translate="no">ReStreet Mod Switcher</span>
     <button type="button" class="tb donate coffee" id="donateSwitcher" title="Support smel_111 on Buy Me a Coffee"><span>Support Mod Switcher</span></button>
     <button type="button" class="tb donate kofi" id="donate" title="Support the original ReStreet on Ko-fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#06212e" d="M2.5 6.5h15v6.2a5.3 5.3 0 0 1-5.3 5.3H7.8a5.3 5.3 0 0 1-5.3-5.3zm15 1.2h1.3a3.2 3.2 0 0 1 0 6.4h-1.6c.2-.5.3-1 .3-1.5v-.6h1.3a1.2 1.2 0 0 0 0-2.4h-1.3z"/><path fill="#ff5e5b" d="M10 10.1c.8-1 2.6-.7 2.6.9 0 1.6-2.6 3.2-2.6 3.2S7.4 12.6 7.4 11c0-1.6 1.8-1.9 2.6-.9z"/></svg><span>Support original ReStreet</span></button>
     <button class="tb" data-win="min" title="Minimize"><svg viewBox="0 0 14 14"><path d="M2 7h10" stroke="currentColor" stroke-width="1.6"/></svg></button>
     <button class="tb x" data-win="close" title="Close"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.6"/></svg></button>
   </div>
   <aside class="side">
-    <div class="logo">RE<b>/</b><span>STREET</span></div>
+    <div class="logo">
+      <img src="switcher-mark.png" alt="">
+      <span translate="no">ReStreet<strong>Mod Switcher</strong></span>
+    </div>
     <div class="grp">PLAY</div>
-    <button type="button" class="nav on" data-p="p-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><span class="lb">Home</span></button>
+    <button type="button" class="nav on" data-p="p-home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><span class="lb">Home</span></button>
     <button type="button" class="nav" data-p="p-matches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v3.5a2 2 0 0 0 0 4V18H3v-3.5a2 2 0 0 0 0-4z"/><path d="M15 7v11" stroke-dasharray="2 2"/></svg><span class="lb">Matches</span><span class="badge" id="matchBadge" style="display:none"></span></button>
     <button type="button" class="nav" data-p="p-comp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8"/></svg><span class="lb">Competitive</span><span class="badge" id="compBadge" style="display:none">!</span></button>
     <button type="button" class="nav" data-p="p-social"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a3 3 0 0 1-3 3H8l-5 4V6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3z"/></svg><span class="lb">Social</span><span class="badge" id="navBadge" style="display:none"></span></button>
+    <button type="button" class="nav" id="modsTab" hidden data-p="p-mods"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h15m-5-5 5 5-5 5M20 16H5m5-5-5 5 5 5"/></svg><span class="lb">Mods</span></button>
     <div class="grp">SETTINGS</div>
     <button type="button" class="nav" data-p="p-display"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><span class="lb">Display</span></button>
     <button type="button" class="nav" data-p="p-graphics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3"/></svg><span class="lb">Graphics</span></button>
     <button type="button" class="nav" data-p="p-controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg><span class="lb">Controls</span></button>
     <button type="button" class="nav" data-p="p-online"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span class="lb">Online</span></button>
     <button type="button" class="nav" data-p="p-perf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20h18M6 16l4-5 3 3 5-7"/></svg><span class="lb">Performance</span></button>
-    <button type="button" class="nav" id="modsTab" style="display:none" data-p="p-mods"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16M8 4v6M16 9v6M10 14v6"/></svg><span class="lb">Mods</span></button>
     <button type="button" class="nav" data-p="p-advanced"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="lb">Advanced</span></button>
     <div class="spacer"></div>
     <div class="tg side-tg" data-id="onlineMode" tabindex="0" role="switch" title="Off: the game starts offline, with no server, friends or rooms."><div>Play online</div><div class="sw"></div></div>
@@ -512,36 +486,38 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
     <div class="credits"><h4>CREDITS</h4><div>Performance &middot; <b>AnDr3zF</b></div><div>PT-BR translation &middot; <b>Eze_.</b></div></div>
   </aside>
 
-  <section class="page on" id="p-home">
+  <section class="page on" id="p-home" aria-labelledby="homeTitle">
     <div class="home">
-      <div class="ticket season">
-        <div class="body">
-          <h1>FIFA Street<br><span>is back online.</span></h1>
-          <p>Division Match, weekly Cups and Friend Matches with real players. Pick up where you left off.</p>
-          <div class="fields">
-            <div class="fld"><span class="lbl">SERVER</span><span class="big" id="cServer">&ndash;</span><small id="cPing">&nbsp;</small></div>
-            <div class="fld"><span class="lbl">ONLINE NOW</span><span class="big" id="cOnline">&ndash;</span><small id="cOnlineSub">on your server</small></div>
-            <div class="fld"><span class="lbl">GRAPHICS</span><span class="big" id="cApi">&ndash;</span><small id="cProfile">&nbsp;</small></div>
-            <div class="fld"><span class="lbl">YOUR TEAM</span><div class="team" id="hTeam"></div></div>
+      <header class="home-hero">
+        <div class="hero-content">
+          <span class="hero-label" translate="no">2012 / PC</span>
+          <h1 id="homeTitle" translate="no">FIFA STREET</h1>
+          <p class="hero-profile" id="homeProfile" hidden><span>Active profile</span> <strong id="homeProfileName" translate="no"></strong></p>
+          <div class="hero-actions">
+            <button type="button" class="play" data-cmd="play" id="play">PLAY</button>
+            <button type="button" class="btn" data-go="p-mods" id="manageMods" hidden>Manage mods</button>
           </div>
-          <div class="printline"><div class="barcode" aria-hidden="true"></div><span class="ln" id="summary" hidden></span><span class="ln" id="cPerf" style="display:none"><b id="cFps">&ndash;</b> <span id="cFpsSub"></span></span></div>
+          <p class="status" id="status" role="status"></p>
         </div>
-        <div class="stub">
-          <span class="adm">KICK-OFF</span>
-          <button class="play" data-cmd="play" id="play">PLAY</button>
-          <button type="button" class="linkbtn" data-go="p-matches">Join a friend's match</button>
-          <div class="status" id="status"></div>
-        </div>
+      </header>
+      <div class="fields home-fields">
+        <div class="fld"><span class="lbl">SERVER</span><span class="big" id="cServer">&ndash;</span><small id="cPing"></small></div>
+        <div class="fld"><span class="lbl">ONLINE NOW</span><span class="big" id="cOnline">&ndash;</span><small id="cOnlineSub">on your server</small></div>
+        <div class="fld"><span class="lbl">GRAPHICS</span><span class="big" id="cApi">&ndash;</span><small id="cProfile"></small><small id="cPerf" style="display:none"><b id="cFps">&ndash;</b> <span id="cFpsSub"></span></small></div>
+        <div class="fld"><span class="lbl">YOUR TEAM</span><div class="team" id="hTeam"></div></div>
       </div>
-      <div class="rowhead"><h2>Open matches</h2><button type="button" class="linkbtn" data-go="p-matches">Post a match</button></div>
-      <div class="tix row3" id="hList"><div class="empty">No open matches right now. Post one and anyone on your server can join.</div></div>
-      <div class="news"><span class="tagnew">New in 2.1</span><b>Pick any team for online friend matches</b><span class="nsub">Barça, Real, national teams or your World Tour side, when you post or join a match.</span></div>
+      <span id="summary" hidden></span>
+      <div class="home-community">
+        <section class="home-card">
+          <div class="rowhead"><h2>Open matches</h2><button type="button" class="linkbtn" data-go="p-matches">Post a match</button></div>
+          <div class="tix row3" id="hList"><div class="empty">No open matches right now. Post one and anyone on your server can join.</div></div>
+        </section>
+        <section class="home-card friends-card">
+          <div class="rowhead"><h2>Friends online</h2><button type="button" class="linkbtn" data-go="p-social">Open Social</button></div>
+          <div id="hStands"></div>
+        </section>
+      </div>
     </div>
-    <aside class="stands">
-      <h2>Friends online</h2>
-      <div id="hStands"></div>
-      <button type="button" class="linkbtn" data-go="p-social">Open Social</button>
-    </aside>
   </section>
 
   <section class="page" id="p-social">
@@ -665,8 +641,85 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
     <p class="knote" id="kNote" role="status"></p>
   </div></section>
   <section class="page" id="p-mods"><div class="panel">
-    <h2>Mods</h2>
-    <section id="thunderstore" aria-labelledby="thunderstoreTitle">
+    <header class="mods-heading">
+      <h2>Mods</h2>
+      <div class="active-profile" id="activeProfile" hidden>
+        <div><span>Active profile</span><strong id="activeProfileName" translate="no"></strong></div>
+        <button type="button" class="btn" id="browseVanillaTeams" hidden>View Vanilla teams</button>
+        <button type="button" class="btn" id="browseModTeams" hidden>View mod teams</button>
+      </div>
+    </header>
+    <div class="mods-tabs" role="tablist" aria-label="Mods">
+      <button type="button" role="tab" id="profilesTab" aria-controls="profilesPanel" aria-selected="true">Profiles</button>
+      <button type="button" role="tab" id="installedTab" aria-controls="installedPanel" aria-selected="false" tabindex="-1">Installed mods</button>
+      <button type="button" role="tab" id="catalogTab" aria-controls="thunderstore" aria-selected="false" tabindex="-1">Discover mods</button>
+    </div>
+    <p id="modChangeStatus" class="sub" role="status"></p>
+    <section id="profilesPanel" class="mods-section" role="tabpanel" aria-labelledby="profilesTab" tabindex="0">
+      <div id="profileList">
+        <p class="sub">Each profile has its own World Tour saves. Mod profiles launch offline.</p>
+        <div class="mod-grid" role="group" aria-label="Game profile">
+          <article class="mod-tile">
+            <button type="button" class="mod-card" data-mod="vanilla" aria-pressed="false">
+              <img src="mods-vanilla.jpg" alt="">
+              <strong>Vanilla</strong><small>Original 2012 game</small>
+              <span class="profile-action">Use profile</span>
+            </button>
+          </article>
+          <article class="mod-tile" hidden>
+            <button type="button" class="mod-card" data-mod="classic" aria-pressed="false">
+              <img src="classic-en.png" data-cover="classic" alt="">
+              <strong>FIFA Street Classic</strong><small>Historic clubs, legends and classic kits</small>
+              <span class="profile-action">Use profile</span>
+            </button>
+            <button type="button" class="btn mod-screens" data-gallery="classic" aria-label="FIFA Street Classic screenshots">Screenshots</button>
+          </article>
+          <article class="mod-tile" hidden>
+            <button type="button" class="mod-card" data-mod="street2026" aria-pressed="false">
+              <img src="2026-en.png" data-cover="street2026" alt="">
+              <strong>FIFA Street 2026</strong><small>2025/26 squads, updated clubs and national teams</small>
+              <span class="profile-action">Use profile</span>
+            </button>
+            <button type="button" class="btn mod-screens" data-gallery="street2026" aria-label="FIFA Street 2026 screenshots">Screenshots</button>
+          </article>
+        </div>
+        <section id="communityProfileSection" hidden>
+          <h3>Thunderstore profiles</h3>
+          <div id="communityProfileList" class="mod-rows" role="group" aria-label="Thunderstore profiles"></div>
+        </section>
+      </div>
+      <div id="modGalleryPage" hidden>
+        <div class="mod-page-head">
+          <button type="button" class="btn" id="modBack">Back to mods</button>
+          <h3 id="modTitle"></h3>
+          <p id="modDescription"></p>
+        </div>
+        <h3>Screenshots</h3>
+        <div class="mod-gallery" id="modGallery"></div>
+      </div>
+    </section>
+    <section id="installedPanel" class="mods-section" role="tabpanel" aria-labelledby="installedTab" tabindex="0" hidden>
+      <div id="installedModsList" class="mod-rows" role="group" aria-label="Installed mods"></div>
+      <div class="mods-empty" id="noInstalledMods">
+        <p>No mods installed yet.</p>
+        <button type="button" class="btn" id="discoverMods">Discover mods</button>
+      </div>
+      <section id="manualModSetup" class="manual-mod-setup" hidden>
+        <h3>Manual mod setup</h3>
+        <p class="sub">Choose a separate Game folder where you already installed the mod.</p>
+        <div class="row">
+          <select id="manualModChoice" aria-label="Manual mod">
+            <option value="classic">FIFA Street Classic</option>
+            <option value="street2026">FIFA Street 2026</option>
+          </select>
+          <button type="button" class="btn" id="browseMod">Select mod Game folder</button>
+          <button type="button" class="btn" id="downloadMod">Download mod</button>
+          <button type="button" class="btn" id="modPreview">View original post</button>
+        </div>
+        <p class="sub" id="modPath" translate="no"></p>
+      </section>
+    </section>
+    <section id="thunderstore" class="mods-section" role="tabpanel" aria-labelledby="catalogTab" tabindex="0" hidden>
       <div class="thunderstore-head">
         <h3 id="thunderstoreTitle">Thunderstore</h3>
         <div class="thunderstore-actions">
@@ -677,21 +730,6 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
       <p class="sub" id="thunderstoreStatus" role="status"></p>
       <div id="thunderstorePackages"></div>
     </section>
-    <h3 class="sec mod-intro">Manual profiles</h3>
-    <p class="sub mod-intro">Each profile has its own World Tour saves. Mod profiles launch offline.</p>
-    <p class="mod-hint mod-intro">Double-click a mod to open its page.</p>
-    <div class="mod-grid" role="group" aria-label="Game profile">
-      <button type="button" class="mod-card" data-mod="vanilla" aria-pressed="false"><img src="mods-vanilla.jpg" alt=""><strong>Vanilla</strong><small>Original 2012 game</small></button>
-      <button type="button" class="mod-card" data-mod="classic" aria-pressed="false"><img src="classic-en.png" data-cover="classic" alt=""><strong>FIFA Street Classic</strong><small>Historic clubs, legends and classic kits</small></button>
-      <button type="button" class="mod-card" data-mod="street2026" aria-pressed="false"><img src="2026-en.png" data-cover="street2026" alt=""><strong>FIFA Street 2026</strong><small>2025/26 squads, updated clubs and national teams</small></button>
-    </div>
-    <div id="modGalleryPage" hidden>
-      <div class="mod-page-head"><button type="button" class="btn" id="modBack">Back to mods</button>
-      <h3 id="modTitle"></h3>
-      <p id="modDescription"></p></div>
-      <h3>Screenshots</h3>
-      <div class="mod-gallery" id="modGallery"></div>
-    </div>
     <dialog id="modLightbox" aria-label="Screenshots">
       <div class="mod-view-bar"><span id="modPosition" aria-live="polite"></span><form method="dialog"><button class="btn">Close</button></form></div>
       <div class="mod-view-stage">
@@ -700,24 +738,16 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
         <button type="button" class="btn mod-arrow" id="modNext" aria-label="Next image">›</button>
       </div>
     </dialog>
-    <button type="button" class="btn" id="browseVanillaTeams" hidden>View Vanilla teams</button>
-    <section id="thunderstoreProfiles" hidden>
-      <h3>Thunderstore profiles</h3>
-      <div id="thunderstoreProfilesList" role="group" aria-label="Thunderstore profiles"></div>
-    </section>
-    <div class="mod-details" id="modDetails">
-    <button type="button" class="btn" id="browseMod">Select mod Game folder</button>
-    <button type="button" class="btn" id="browseModTeams">View mod teams</button>
-    <button type="button" class="btn" id="downloadMod">Download mod</button>
-    <button type="button" class="btn" id="modPreview">View original post</button>
-    <p class="sub" id="modPath"></p>
-    </div>
   </div></section>
   <section class="page" id="p-advanced"><div class="panel">
     <h2>Advanced</h2><p class="sub">Game files and renderer options for textures, lighting, black screens and stutter.</p>
     <div class="sec">GAME FILES</div>
     <div class="pathrow"><div class="field"><label>GAME EXECUTABLE</label><input id="exe" readonly></div><button class="btn" data-cmd="browseExe">Browse</button></div>
     <div class="pathrow"><div class="field"><label>GAME DATA FOLDER</label><input id="data" readonly></div><button class="btn" data-cmd="browseData">Browse</button></div>
+    <div id="manualModSetting" hidden>
+      <div class="sec">Mods</div>
+      <div class="tg" tabindex="0" role="switch" aria-checked="false" data-id="manualModSetup"><div>Show manual mod setup<small>Show folder and download options under Installed mods.</small></div><div class="sw"></div></div>
+    </div>
     <div class="sec old-only">COMPATIBILITY</div>
     <div class="grid2 old-only" style="margin-bottom:14px"><div class="field"><label>READBACK RESOLVE</label><div class="dd" data-id="readback"><button class="dd-btn" type="button"><span></span><i></i></button><div class="dd-list"></div></div></div></div>
     <div class="toggles old-only"><div class="tg" tabindex="0" role="switch" data-id="memexport"><div>Memory Export</div><div class="sw"></div></div><div class="tg" tabindex="0" role="switch" data-id="memexportFast"><div>Fast MemExport</div><div class="sw"></div></div><div class="tg" tabindex="0" role="switch" data-id="pageState"><div>Memory Page State</div><div class="sw"></div></div><div class="tg" tabindex="0" role="switch" data-id="occlusion"><div>Occlusion Queries</div><div class="sw"></div></div><div class="tg" tabindex="0" role="switch" data-id="asyncShaders"><div>Async Shaders</div><div class="sw"></div></div><div class="tg" tabindex="0" role="switch" data-id="frameStats"><div>Frame stats log</div><div class="sw"></div></div><div class="tg" tabindex="0" role="switch" data-id="perfShare"><div>Share performance reports</div><div class="sw"></div></div></div>
@@ -733,6 +763,16 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
     <div class="row" style="margin-top:20px"><button class="btn" data-cmd="logs">Open logs</button><button class="btn" data-cmd="folder">Open game folder</button><button class="btn" data-cmd="shortcut">Desktop shortcut</button></div>
   </div></section>
 </div>
+<dialog id="uninstallModDialog" aria-labelledby="uninstallModTitle" aria-describedby="uninstallModNote">
+  <h3 id="uninstallModTitle">Uninstall mod</h3>
+  <strong id="uninstallModName" translate="no"></strong>
+  <p id="uninstallModNote"></p>
+  <p id="uninstallModPath" translate="no"></p>
+  <form method="dialog" class="row">
+    <button class="btn" value="cancel" autofocus>Cancel</button>
+    <button class="btn danger" id="confirmModUninstall" value="confirm">Uninstall</button>
+  </form>
+</dialog>
 <dialog id="modTeamsDialog" aria-labelledby="modTeamsTitle">
   <div class="mod-teams-header"><h3 id="modTeamsTitle">Mod teams</h3>
     <form method="dialog"><button class="btn">Close</button></form>
@@ -764,6 +804,7 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
         <h3 id="thunderstoreDetailTitle" translate="no"></h3>
         <p id="thunderstoreDetailAuthor" class="thunderstore-author" translate="no"></p>
       </div>
+      <span id="thunderstoreDetailInstalled" class="thunderstore-installed" hidden>Installed</span>
     </div>
     <form method="dialog"><button class="btn" autofocus>Close</button></form>
   </div>
@@ -772,6 +813,7 @@ body.deck .old-only,body:not(.deck) .deck-only{display:none!important}
   <p id="thunderstoreDetailNote" class="sub" role="status"></p>
   <div id="thunderstoreDetailReadme" translate="no" tabindex="0"></div>
   <div class="thunderstore-actions">
+    <button type="button" class="btn" id="thunderstoreDetailUpdate" hidden>Update mod</button>
     <button type="button" class="btn" id="thunderstoreDetailPage">Open Thunderstore</button>
   </div>
 </dialog>
@@ -829,16 +871,24 @@ const send = m => host && host.postMessage(m);
 const $ = id => document.getElementById(id);
 const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-document.querySelectorAll('.nav').forEach(n => n.onclick = () => {
-  document.querySelectorAll('.nav').forEach(x => x.classList.toggle('on', x === n));
-  document.querySelectorAll('.page').forEach(p => p.classList.toggle('on', p.id === n.dataset.p));
+const navButtons = document.querySelectorAll('.nav');
+navButtons.forEach(button => {
+  button.title = button.querySelector('.lb').textContent;
+  button.setAttribute('aria-label', button.title);
+  button.onclick = () => {
+    navButtons.forEach(item => {
+      item.classList.toggle('on', item === button);
+      if (item === button) item.setAttribute('aria-current', 'page');
+      else item.removeAttribute('aria-current');
+    });
+    document.querySelectorAll('.page').forEach(page => page.classList.toggle('on', page.id === button.dataset.p));
+  };
 });
 const goPage = id => document.querySelector('.nav[data-p="' + id + '"]').click();
 document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => goPage(b.dataset.go));
 $('titlebar').addEventListener('mousedown', e => { if (e.button === 0 && !e.target.closest('.tb')) send({cmd: e.detail === 2 ? 'maximize' : 'drag'}); });
 document.querySelectorAll('[data-win]').forEach(b => b.onclick = () => send({cmd: b.dataset.win === 'min' ? 'minimize' : 'close'}));
 document.querySelectorAll('[data-cmd]').forEach(b => b.onclick = () => send({cmd: b.dataset.cmd}));
-$('play').addEventListener('click', () => { const t = document.querySelector('.season'); t.classList.remove('tear'); void t.offsetWidth; t.classList.add('tear'); });
 document.querySelectorAll('.tg').forEach(t => t.onclick = () => { if (t.classList.contains('dis')) return; t.classList.toggle('on');
   const on = t.classList.contains('on'); send(t.dataset.id === 'perfShare' ? {cmd: 'perfShare', value: on} : t.dataset.ctl ? {cmd: 'controls', value: {[t.dataset.ctl]: on}} : {cmd: 'toggle', id: t.dataset.id, value: on}); });
 addEventListener('keydown', e => {
@@ -1083,15 +1133,13 @@ $('modLightbox').addEventListener('keydown', event => {
 });
 modCards.forEach(card => {
   card.onclick = () => send({cmd: 'selectModProfile', value: card.dataset.mod});
-  card.onkeydown = event => {
-    if (event.key === 'Enter' && !event.repeat) { event.preventDefault(); card.click(); card.ondblclick(); }
-  };
-  card.ondblclick = () => {
-  const id = card.dataset.mod;
-  send({cmd: 'selectModProfile', value: id});
-  const mod = modGallery[id];
-  if (!mod) return;
+});
+document.querySelectorAll('.mod-screens').forEach(button => {
+  button.onclick = () => openModGallery(button.dataset.gallery);
+});
+function openModGallery(id) {
   galleryId = id;
+  const mod = modGallery[id];
   $('modTitle').textContent = mod.title;
   $('modDescription').textContent = mod.description;
   $('modGallery').replaceChildren();
@@ -1109,19 +1157,22 @@ modCards.forEach(card => {
     };
     $('modGallery').append(button);
   }
+  $('profileList').hidden = true;
   $('modGalleryPage').hidden = false;
-  $('p-mods').classList.add('details-open');
   $('modBack').focus();
-  };
-});
+}
 $('modBack').onclick = () => {
   $('modGalleryPage').hidden = true;
-  $('p-mods').classList.remove('details-open');
-  document.querySelector('.mod-card[aria-pressed=true]')?.focus();
+  $('profileList').hidden = false;
+  document.querySelector('.mod-screens[data-gallery="' + galleryId + '"]').focus();
 };
-$('browseMod').onclick = () => send({cmd: 'browseMod'});
-$('downloadMod').onclick = () => send({cmd: 'downloadMod'});
-$('modPreview').onclick = () => send({cmd: 'modPreview'});
+for (const cmd of ['browseMod', 'downloadMod', 'modPreview']) {
+  $(cmd).onclick = () => send({cmd, id: $('manualModChoice').value});
+}
+let installedMods = [];
+$('manualModChoice').onchange = () => {
+  $('modPath').textContent = installedMods.find(mod => mod.id === $('manualModChoice').value)?.path || '';
+};
 
 const modCrestBatchSize = 24;
 let teamRosterRequest = 0;
@@ -1323,32 +1374,133 @@ $('modTeamsSearch').oninput = renderModTeams;
 
 let thunderstoreRequested = false;
 let thunderstoreInstalling = false;
-let thunderstoreProfilesState = '';
+let modListsState = '';
 let thunderstoreDetailPackage = null;
 
 function setThunderstoreInstalling(busy) {
   thunderstoreInstalling = busy;
   $('thunderstoreRefresh').disabled = busy;
-  $('thunderstorePackages').querySelectorAll('[data-install-package]').forEach(button => { button.disabled = busy; });
+  syncThunderstoreInstallActions();
 }
 
-function renderThunderstoreProfiles(profiles, selected, locked) {
-  const state = JSON.stringify([profiles, selected, locked]);
-  if (thunderstoreProfilesState === state) return;
-  thunderstoreProfilesState = state;
-  $('thunderstoreProfiles').hidden = profiles.length === 0;
-  const list = document.createDocumentFragment();
-  for (const mod of profiles) {
+function installedThunderstoreMod(id) {
+  const profileId = 'thunderstore:' + id.toLowerCase();
+  return installedMods.find(mod => !mod.manual && mod.id.toLowerCase() === profileId);
+}
+
+function syncThunderstoreInstallActions() {
+  $('thunderstorePackages').querySelectorAll('[data-install-package]').forEach(button => {
+    const installed = !!installedThunderstoreMod(button.dataset.installPackage);
+    button.hidden = installed;
+    button.disabled = thunderstoreInstalling || installed;
+    button.parentElement.querySelector('.thunderstore-installed').hidden = !installed;
+  });
+  syncThunderstoreDetail();
+}
+
+function beginThunderstoreInstall(id) {
+  if (thunderstoreInstalling) return;
+  setThunderstoreInstalling(true);
+  $('thunderstoreStatus').textContent = 'Downloading mod…';
+  send({cmd: 'thunderstoreInstall', id});
+}
+
+function renderModLists(mods, selected, locked) {
+  const state = JSON.stringify([mods, selected, locked]);
+  if (modListsState === state) return;
+  modListsState = state;
+  const community = mods.filter(mod => !mod.manual);
+  $('noInstalledMods').hidden = mods.length !== 0;
+  $('communityProfileSection').hidden = community.length === 0;
+  renderModRows($('installedModsList'), mods, selected, locked, true);
+  renderModRows($('communityProfileList'), community, selected, locked, false);
+}
+
+function renderModRows(list, mods, selected, locked, allowUninstall) {
+  const focused = list.contains(document.activeElement) ? document.activeElement : null;
+  const rows = document.createDocumentFragment();
+  let restoreFocus;
+  for (const mod of mods) {
+    const row = document.createElement('article');
+    row.className = 'installed-mod';
+    const info = document.createElement('div');
+    const name = document.createElement('strong');
+    name.textContent = mod.name.replaceAll('_', ' ');
+    name.translate = false;
+    const source = document.createElement('span');
+    source.textContent = mod.manual ? 'Manual installation' : 'Thunderstore';
+    const meta = document.createElement('small');
+    meta.append(source);
+    const details = [mod.author, mod.version && 'v' + mod.version].filter(Boolean);
+    if (details.length) {
+      const detail = document.createElement('span');
+      detail.translate = false;
+      detail.textContent = ' · ' + details.join(' · ');
+      meta.append(detail);
+    }
+    info.append(name, meta);
+    const actions = document.createElement('div');
+    actions.className = 'row';
     const button = document.createElement('button');
     button.className = 'btn';
     button.type = 'button';
-    button.textContent = mod.name + ' · ' + mod.author;
+    button.dataset.profile = mod.id;
+    button.dataset.action = 'select';
+    button.textContent = mod.id === selected ? 'Active profile' : 'Use profile';
+    button.title = name.textContent;
     button.disabled = locked;
     button.setAttribute('aria-pressed', String(mod.id === selected));
     button.onclick = () => send({cmd: 'selectModProfile', value: mod.id});
-    list.append(button);
+    actions.append(button);
+    if (allowUninstall) {
+      const uninstall = document.createElement('button');
+      uninstall.className = 'btn danger';
+      uninstall.type = 'button';
+      uninstall.dataset.profile = mod.id;
+      uninstall.dataset.action = 'uninstall';
+      uninstall.textContent = 'Uninstall';
+      uninstall.title = name.textContent;
+      uninstall.disabled = locked;
+      uninstall.onclick = () => confirmUninstall(mod);
+      actions.append(uninstall);
+    }
+    if (mod.id === focused?.dataset.profile)
+      restoreFocus = [...actions.children].find(action => action.dataset.action === focused.dataset.action);
+    row.append(info, actions);
+    rows.append(row);
   }
-  $('thunderstoreProfilesList').replaceChildren(list);
+  list.replaceChildren(rows);
+  restoreFocus?.focus();
+}
+
+const uninstallDialog = $('uninstallModDialog');
+let modToUninstall;
+function confirmUninstall(mod) {
+  modToUninstall = mod;
+  $('uninstallModName').textContent = mod.name.replaceAll('_', ' ');
+  $('uninstallModPath').textContent = mod.path;
+  $('uninstallModNote').textContent = mod.recycleFiles
+    ? 'Send the mod’s Game folder to the Recycle Bin. World Tour saves are kept.'
+    : 'Remove this profile from the launcher. Its files and World Tour saves stay in place.';
+  $('confirmModUninstall').textContent = mod.recycleFiles ? 'Uninstall' : 'Remove profile';
+  uninstallDialog.showModal();
+}
+uninstallDialog.querySelector('form').onsubmit = event => {
+  if (event.submitter?.value !== 'confirm' || !modToUninstall) return;
+  const {id, path, recycleFiles} = modToUninstall;
+  $('modChangeStatus').textContent = 'Uninstalling mod…';
+  send({cmd: 'uninstallMod', id, path, recycleFiles});
+};
+function renderModUninstall(message) {
+  const status = $('modChangeStatus');
+  status.classList.toggle('mod-error', message.error);
+  status.textContent = message.note;
+  if (message.recoveryPath) {
+    const path = document.createElement('span');
+    path.translate = false;
+    path.textContent = ' ' + message.recoveryPath;
+    status.append(path);
+  }
 }
 
 function loadThunderstore() {
@@ -1376,12 +1528,13 @@ function thunderstoreIcon(mod, eager = false) {
   return icon;
 }
 
-function thunderstoreStats(mod, element) {
+function thunderstoreStats(mod, element, installedVersion) {
   const locale = document.documentElement.lang;
   const number = new Intl.NumberFormat(locale);
   const unit = mod.size >= 1024 ** 3 ? 3 : mod.size >= 1024 ** 2 ? 2 : mod.size >= 1024 ? 1 : 0;
   const stats = [
     ['Version', mod.version],
+    ['Installed version', installedVersion],
     ['Size', Number.isFinite(mod.size) && mod.size >= 0 ? new Intl.NumberFormat(locale, {maximumFractionDigits: 1})
       .format(mod.size / 1024 ** unit) + ' ' + ['B', 'KiB', 'MiB', 'GiB'][unit] : null],
     ['Downloads', Number.isFinite(mod.downloads) && mod.downloads >= 0 ? number.format(mod.downloads) : null],
@@ -1401,12 +1554,30 @@ function thunderstoreStats(mod, element) {
   element.replaceChildren(list);
 }
 
+function hasNewerThunderstoreVersion(installed, available) {
+  const version = /^\d+\.\d+\.\d+$/;
+  if (!version.test(installed) || !version.test(available)) return false;
+  const current = installed.split('.').map(Number);
+  const latest = available.split('.').map(Number);
+  const difference = latest.findIndex((part, index) => part !== current[index]);
+  return difference !== -1 && latest[difference] > current[difference];
+}
+
+function syncThunderstoreDetail() {
+  if (!$('thunderstoreDetail').open || !thunderstoreDetailPackage) return;
+  const mod = thunderstoreDetailPackage;
+  const installed = installedThunderstoreMod(mod.id);
+  $('thunderstoreDetailInstalled').hidden = !installed;
+  $('thunderstoreDetailUpdate').hidden = !hasNewerThunderstoreVersion(installed?.version, mod.version);
+  $('thunderstoreDetailUpdate').disabled = thunderstoreInstalling;
+  thunderstoreStats(mod, $('thunderstoreDetailStats'), installed?.version);
+}
+
 function showThunderstoreDetail(mod) {
   thunderstoreDetailPackage = mod;
   $('thunderstoreDetailTitle').textContent = mod.name.replaceAll('_', ' ');
   $('thunderstoreDetailAuthor').textContent = mod.author;
   $('thunderstoreDetailIcon').replaceChildren(thunderstoreIcon(mod, true));
-  thunderstoreStats(mod, $('thunderstoreDetailStats'));
   const categories = Array.isArray(mod.categories) ? mod.categories.filter(Boolean) : [];
   $('thunderstoreDetailCategories').textContent = categories.join(' · ');
   $('thunderstoreDetailCategories').hidden = categories.length === 0;
@@ -1414,6 +1585,7 @@ function showThunderstoreDetail(mod) {
   $('thunderstoreDetailReadme').textContent = mod.description || '';
   $('thunderstoreDetailReadme').scrollTop = 0;
   $('thunderstoreDetail').showModal();
+  syncThunderstoreDetail();
   send({cmd: 'thunderstoreReadme', id: mod.id});
 }
 
@@ -1474,7 +1646,10 @@ function renderThunderstore(message) {
   const status = $('thunderstoreStatus');
   if (message.type === 'thunderstoreReadme') {
     if (!$('thunderstoreDetail').open || thunderstoreDetailPackage?.id !== message.id) return;
-    if (message.version) thunderstoreStats({...thunderstoreDetailPackage, version: message.version}, $('thunderstoreDetailStats'));
+    if (message.version) {
+      thunderstoreDetailPackage = {...thunderstoreDetailPackage, version: message.version};
+      syncThunderstoreDetail();
+    }
     const note = $('thunderstoreDetailNote');
     const markdown = typeof message.markdown === 'string' ? message.markdown.trim() : '';
     note.textContent = message.error ? 'Could not load the full mod description.'
@@ -1528,22 +1703,21 @@ function renderThunderstore(message) {
     page.className = 'btn';
     page.textContent = 'Mod details';
     page.onclick = () => showThunderstoreDetail(mod);
+    const installed = document.createElement('span');
+    installed.className = 'thunderstore-installed';
+    installed.textContent = 'Installed';
     const install = document.createElement('button');
     install.type = 'button';
     install.className = 'btn';
     install.textContent = 'Install mod';
     install.dataset.installPackage = mod.id;
-    install.disabled = thunderstoreInstalling;
-    install.onclick = () => {
-      setThunderstoreInstalling(true);
-      status.textContent = 'Downloading mod…';
-      send({cmd: 'thunderstoreInstall', id: mod.id});
-    };
-    actions.append(install, page);
+    install.onclick = () => beginThunderstoreInstall(mod.id);
+    actions.append(installed, install, page);
     row.append(thunderstoreIcon(mod), summary, actions);
     list.append(row);
   }
   $('thunderstorePackages').replaceChildren(list);
+  syncThunderstoreInstallActions();
 }
 
 $('thunderstoreRefresh').onclick = loadThunderstore;
@@ -1551,7 +1725,36 @@ $('thunderstoreCommunity').onclick = () => send({cmd: 'thunderstorePage'});
 $('thunderstoreDetailPage').onclick = () => {
   if (thunderstoreDetailPackage) send({cmd: 'thunderstorePage', id: thunderstoreDetailPackage.id});
 };
-$('modsTab').addEventListener('click', () => { if (!thunderstoreRequested) loadThunderstore(); });
+$('thunderstoreDetailUpdate').onclick = () => {
+  $('thunderstoreDetail').close();
+  beginThunderstoreInstall(thunderstoreDetailPackage.id);
+};
+const modsTabs = [...document.querySelectorAll('.mods-tabs [role="tab"]')];
+function selectModsTab(tab) {
+  modsTabs.forEach(item => {
+    item.setAttribute('aria-selected', String(item === tab));
+    item.tabIndex = item === tab ? 0 : -1;
+    $(item.getAttribute('aria-controls')).hidden = item !== tab;
+  });
+  if (tab.id === 'catalogTab' && !thunderstoreRequested) loadThunderstore();
+}
+modsTabs.forEach((tab, index) => {
+  tab.onclick = () => selectModsTab(tab);
+  tab.onkeydown = event => {
+    const last = modsTabs.length - 1;
+    const targets = {ArrowLeft: index === 0 ? last : index - 1, ArrowRight: index === last ? 0 : index + 1, Home: 0, End: last};
+    if (!Object.hasOwn(targets, event.key)) return;
+    event.preventDefault();
+    const target = modsTabs[targets[event.key]];
+    selectModsTab(target);
+    target.focus();
+  };
+});
+$('discoverMods').onclick = () => {
+  const tab = $('catalogTab');
+  selectModsTab(tab);
+  tab.focus();
+};
 
 let savingOnlineName = false;
 let editingOnlineName = false;
@@ -1585,12 +1788,22 @@ function renderOnlineName(message) {
 
 function render(s) {
   if (s.modProfiles) {
-    $('modsTab').style.display = '';
+    $('modsTab').hidden = false;
+    $('manageMods').hidden = false;
+    $('homeProfile').hidden = false;
+    $('activeProfile').hidden = false;
     const modded = s.modProfiles.selected !== 'vanilla';
+    installedMods = s.modProfiles.installed;
+    const selectedCard = [...modCards].find(card => card.dataset.mod === s.modProfiles.selected);
+    const selectedMod = installedMods.find(mod => mod.id === s.modProfiles.selected);
+    const profileName = selectedMod?.name.replaceAll('_', ' ') ?? selectedCard?.querySelector('strong').textContent ?? s.modProfiles.selected;
+    $('homeProfileName').textContent = profileName;
+    $('activeProfileName').textContent = profileName;
     const profile = JSON.stringify([s.modProfiles.selected, s.modProfiles.path]);
     if (profile !== modTeamsProfile && $('modTeamsDialog').open) $('modTeamsDialog').close();
     modTeamsProfile = profile;
     $('browseModTeams').disabled = !modded || !s.modProfiles.path;
+    $('browseModTeams').hidden = !modded;
     $('gModTeams').hidden = modded && !s.modProfiles.path;
     $('browseVanillaTeams').hidden = modded;
     $('modTeamsTitle').textContent = modded ? 'Mod teams' : 'Teams';
@@ -1598,21 +1811,24 @@ function render(s) {
     $('p-matches').classList.toggle('mod-active', modded);
     $('gModNotice').hidden = !modded;
     modCards.forEach(card => {
-      card.setAttribute('aria-pressed', String(card.dataset.mod === s.modProfiles.selected));
+      const selected = card === selectedCard;
+      card.closest('.mod-tile').hidden = card.dataset.mod !== 'vanilla' && !installedMods.some(mod => mod.id === card.dataset.mod);
+      card.setAttribute('aria-pressed', String(selected));
+      card.querySelector('.profile-action').textContent = selected ? 'Active profile' : 'Use profile';
       card.disabled = s.modProfiles.locked;
     });
-    $('modDetails').hidden = !modded;
-    $('downloadMod').hidden = !!s.modProfiles.communitySelected;
-    $('modPreview').hidden = !!s.modProfiles.communitySelected;
-    $('browseMod').hidden = !!s.modProfiles.communitySelected;
-    renderThunderstoreProfiles(s.modProfiles.community || [], s.modProfiles.selected, s.modProfiles.locked);
-    $('browseMod').disabled = !modded || s.modProfiles.locked;
-    $('modPath').textContent = modded ? s.modProfiles.path || 'No mod Game folder selected.' : '';
+    renderModLists(installedMods, s.modProfiles.selected, s.modProfiles.locked);
+    syncThunderstoreInstallActions();
+    $('manualModSetting').hidden = false;
+    $('manualModSetup').hidden = !s.modProfiles.manualSetup;
+    $('browseMod').disabled = s.modProfiles.locked;
+    $('manualModChoice').onchange();
   }
   if (s.controls) renderControls(s.controls);
   for (const [id, f] of Object.entries(s.fields || {})) fillDD(id, f);
   for (const [id, t] of Object.entries(s.toggles || {})) { const el = document.querySelector('.tg[data-id="' + id + '"]'); if (!el) continue;
-    el.classList.toggle('on', !!t.on); el.classList.toggle('dis', t.enabled === false); el.style.opacity = t.enabled === false ? .5 : 1; }
+    el.classList.toggle('on', !!t.on); el.setAttribute('aria-checked', String(!!t.on));
+    el.classList.toggle('dis', t.enabled === false); el.style.opacity = t.enabled === false ? .5 : 1; }
   $('exe').value = s.exe || ''; $('data').value = s.data || '';
   $('summary').textContent = s.summary || ''; $('status').textContent = s.status || ''; $('status').classList.toggle('bad', s.statusOk === false);
   gameIsRunning = !!s.running; document.body.classList.toggle('deck', !!s.deck);
@@ -2196,7 +2412,7 @@ setInterval(() => {
   }
 }, 3000);
 document.querySelector('[data-p=p-comp]').addEventListener('click', () => { compAt = {table: 0, tournaments: 0}; send({cmd: 'comp', action: 'me'}); });
-if (host) { host.addEventListener('message', e => !e.data ? 0 : e.data.type === 'social' ? renderSocial(e.data) : e.data.type === 'comp' ? renderComp(e.data) : e.data.type === 'saves' ? renderSaves(e.data) : e.data.type === 'key' ? renderKey(e.data) : e.data.type === 'onlineName' ? renderOnlineName(e.data) : e.data.type === 'perf' ? renderPerf(e.data) : e.data.type === 'perfHistory' ? renderHistory(e.data) : e.data.type === 'teamRoster' ? renderTeamRoster(e.data) : e.data.type === 'modTeams' || e.data.type === 'modTeamCrests' ? renderModCatalog(e.data) : String(e.data.type).startsWith('thunderstore') ? renderThunderstore(e.data) : String(e.data.type).startsWith('update') ? renderUpdate(e.data) : render(e.data)); send({cmd: 'state'}); }
+if (host) { host.addEventListener('message', e => !e.data ? 0 : e.data.type === 'social' ? renderSocial(e.data) : e.data.type === 'comp' ? renderComp(e.data) : e.data.type === 'saves' ? renderSaves(e.data) : e.data.type === 'key' ? renderKey(e.data) : e.data.type === 'onlineName' ? renderOnlineName(e.data) : e.data.type === 'perf' ? renderPerf(e.data) : e.data.type === 'perfHistory' ? renderHistory(e.data) : e.data.type === 'teamRoster' ? renderTeamRoster(e.data) : e.data.type === 'modUninstall' ? renderModUninstall(e.data) : e.data.type === 'modTeams' || e.data.type === 'modTeamCrests' ? renderModCatalog(e.data) : String(e.data.type).startsWith('thunderstore') ? renderThunderstore(e.data) : String(e.data.type).startsWith('update') ? renderUpdate(e.data) : render(e.data)); send({cmd: 'state'}); }
 // Controller (Steam Deck, Xbox pad): D-pad / left stick move the focus to the nearest control on screen, A presses it,
 // B closes a list or dialog (else goes back to Home), LB / RB step through the pages. Only while a pad is connected.
 const PAD = {A: 0, B: 1, LB: 4, RB: 5, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15};
@@ -2224,6 +2440,8 @@ function padMove(dx, dy) {
   if (best) { best.focus(); best.scrollIntoView({block: 'nearest', inline: 'nearest'}); }
 }
 function padBack() {
+  if (uninstallDialog.open) return uninstallDialog.close();
+  if ($('modLightbox').open) return $('modLightbox').close();
   if ($('thunderstoreDetail').open) return $('thunderstoreDetail').close();
   if ($('teamRosterDialog').open) return $('teamRosterDialog').close();
   if ($('modTeamsDialog').open) return $('modTeamsDialog').close();
@@ -2232,10 +2450,11 @@ function padBack() {
   if (!$('passAsk').classList.contains('gone')) return closePassword();
   if (!$('teamPick').classList.contains('gone')) return closeTeamPicker(false);
   for (const id of ['updAsk', 'perfAsk']) if (!$(id).classList.contains('gone')) return $(id === 'updAsk' ? 'updLater' : 'perfNo').click();
+  if ($('p-mods').classList.contains('on') && !$('profilesPanel').hidden && !$('modGalleryPage').hidden) return $('modBack').click();
   goPage('p-home');
 }
 function padPage(step) {
-  const navs = [...document.querySelectorAll('.nav')], i = navs.findIndex(n => n.classList.contains('on'));
+  const navs = [...navButtons].filter(button => !button.hidden), i = navs.findIndex(n => n.classList.contains('on'));
   navs[(i + step + navs.length) % navs.length].click();
 }
 let padPrev = {}, padRepeat = 0;

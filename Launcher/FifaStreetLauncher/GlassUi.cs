@@ -104,7 +104,7 @@ public partial class LauncherForm
             var options = new CoreWebView2EnvironmentOptions(
                 "--disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows");
             var env = await CoreWebView2Environment.CreateAsync(null, data, options);
-            var view = new WebView2 { Dock = DockStyle.Fill, DefaultBackgroundColor = Color.FromArgb(11, 12, 18) };
+            var view = new WebView2 { Dock = DockStyle.Fill, DefaultBackgroundColor = Color.FromArgb(13, 21, 26) };
             Controls.Add(view);
             view.BringToFront();
             await view.EnsureCoreWebView2Async(env);
@@ -192,6 +192,11 @@ public partial class LauncherForm
                 }
                 break;
             case "toggle":
+                if (id == "manualModSetup" && m.TryGetProperty("value", out var manual) && manual.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                {
+                    ToggleManualModSetup(manual.GetBoolean());
+                    break;
+                }
                 if (GlassToggles().TryGetValue(id, out var t) && t.Enabled && m.TryGetProperty("value", out var v))
                     t.Checked = v.GetBoolean();
                 break;
@@ -238,9 +243,9 @@ public partial class LauncherForm
             case "thunderstorePage": OpenThunderstorePage(id); return;
             case "thunderstoreReadme": _ = LoadThunderstoreReadmeAsync(id); return;
             case "thunderstoreInstall": _ = InstallThunderstoreAsync(id); return;
-            case "downloadMod" when UseMod && IsBuiltInMod:
-            case "modPreview" when UseMod && IsBuiltInMod:
-                string url = (modProfile, cmd) switch
+            case "downloadMod" when manualModSetup && IsManualProfile(id):
+            case "modPreview" when manualModSetup && IsManualProfile(id):
+                string url = (id, cmd) switch
                 {
                     ("street2026", "downloadMod") => "https://drive.google.com/file/d/1XKbAZtVdSmj5AMh3z9BkJjzxTupsrrLO/view",
                     ("street2026", _) => "https://x.com/Jespindola15_/status/2114423014209024459",
@@ -249,7 +254,12 @@ public partial class LauncherForm
                 };
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true })?.Dispose();
                 return;
-            case "browseMod": BrowseModGame(); break;
+            case "browseMod": BrowseModGame(id); break;
+            case "uninstallMod":
+                if (m.TryGetProperty("path", out var path) && path.ValueKind == JsonValueKind.String &&
+                    m.TryGetProperty("recycleFiles", out var recycle) && recycle.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                    _ = UninstallModAsync(id, path.GetString(), recycle.GetBoolean());
+                return;
             case "selectModProfile":
                 if (m.TryGetProperty("value", out var profileValue) && profileValue.ValueKind == JsonValueKind.String)
                     SelectModProfile(profileValue.GetString());
@@ -391,6 +401,10 @@ public partial class LauncherForm
         });
         var toggles = GlassToggles().ToDictionary(t => t.Key, t => (object)new { on = t.Value.Checked, enabled = t.Value.Enabled });
         toggles["perfShare"] = new { on = perfShareCached, enabled = true };
+        toggles["manualModSetup"] = new { on = manualModSetup, enabled = true };
+        var installedMods = InstalledMods().ToArray();
+        if (!launchingGame && !gameRunning && modProfile != "vanilla" && !installedMods.Any(mod => mod.Id == modProfile))
+            modProfile = "vanilla";
         var online = LoadOnlineConfig();
         Dictionary<string, (int Ping, int Online)> info;
         lock (serverInfo) info = new(serverInfo);
@@ -416,11 +430,12 @@ public partial class LauncherForm
             running = gameRunning, deck = deckBase,
             modProfiles = new
             {
-                selected = modProfile, path = UseMod ? ModGamePath : "", locked = launchingGame || gameRunning,
-                communitySelected = communityProfiles.ContainsKey(modProfile),
-                community = communityProfiles.Values.Select(profile => new
+                selected = modProfile, path = UseMod ? ModGamePath : "", locked = ManualModSetupLocked,
+                manualSetup = manualModSetup,
+                installed = installedMods.Select(mod => new
                 {
-                    id = profile.Id, name = profile.Name, author = profile.Author, path = profile.GamePath
+                    id = mod.Id, name = mod.Name, author = mod.Author, version = mod.Version,
+                    path = mod.Path, manual = mod.Manual, recycleFiles = CanRecycleModFiles(mod, installedMods)
                 })
             },
             api = graphicsApiBox.SelectedItem?.ToString(), profile = profileBox.SelectedItem?.ToString(),

@@ -190,7 +190,7 @@ internal sealed class LobbyForm : Form, ISceneHost, IUiScaled
         this.server = server;
         this.me = me;
         Text = "ReStreet - Lobby";
-        using (var icon = typeof(LobbyForm).Assembly.GetManifestResourceStream("fifastreet.ico")!)
+        using (var icon = typeof(LobbyForm).Assembly.GetManifestResourceStream("switcher.ico")!)
             Icon = new Icon(icon);
         ClientSize = new Size(930, 610);
         scaler = new UiScaler(this, 930, 610);
